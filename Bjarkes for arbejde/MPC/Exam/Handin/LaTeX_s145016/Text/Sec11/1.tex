@@ -1,0 +1,20 @@
+\subsection{Continious-Discrete Mathematical Model}
+The system can be represented as continious-discrete mathematical model according to the following:
+\begin{equation}
+    \begin{gathered}
+        x(t_0)=\hat{x}_0 \qquad \hat{x}_0\sim N(\hat{x}_0,\hat{P}_0)\\
+        dx(t)=f\Big(x(t),u(t),d(t),\theta\Big)dt+\sigma\Big(x(t),u(t),d(t),\theta\Big)d\omega(t) \qquad d\omega(t)\sim N_{iid}(0,I\,dt)\\
+        y(t_k)=g(x(t_k),\theta)+v(t_k)\qquad v(t_k)\sim N_{iid}(0,R(\theta))
+    \end{gathered}
+\end{equation}
+Where the function $f$ describes the drift and function $\sigma$ describes the diffusion. The states and the outputs is given by
+\begin{equation}
+    \begin{gathered}
+        dx_1(t)=\rho\left(\gamma_1\,u_1(t)+a_3\sqrt{2\,g\,\frac{x_3(t)}{\rho\,A_3}}-a_1\sqrt{2\,g\,\frac{x_1(t)}{\rho\,A_1}}\right)dt\\
+        dx_2(t)=\rho\left(\gamma_2\,u_2(t)+a_4\sqrt{2\,g\,\frac{x_4(t)}{\rho\,A_4}}-a_2\sqrt{2\,g\,\frac{x_2(t)}{\rho\,A_2}}\right)dt\\
+        dx_3(t)=\rho\left((1-\gamma_2)\,u_2(t)+d_1+\omega(t)-a_3\sqrt{2\,g\,\frac{x_3(t)}{\rho\,A_3}}\right)dt\\
+        dx_4(t)=\rho\left((1-\gamma_1)\,u_1(t)+d_1+\omega(t)-a_4\sqrt{2\,g\,\frac{x_4(t)}{\rho\,A_4}}\right)dt\\
+        y_1(t_k)=\frac{x_1(t_k)}{\rho\,A_1}+v_1(t_k)\\
+        y_2(t_k)=\frac{x_2(t_k)}{\rho\,A_2}+v_2(t_k)
+    \end{gathered}
+\end{equation}

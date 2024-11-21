@@ -1,0 +1,19 @@
+\subsection{Transfer Function - Linear System}
+The system transfer functions is only dependent on $A$, $B$ and $C$ (similar to the poles, gains and zeros) and therefore the transfer functions for the deterministic and stochastic model is the same.\\
+The transfer function can be determine in according to
+\begin{equation}
+    \begin{bmatrix}
+    Y_1(s)\\Y_2(s)
+    \end{bmatrix}=C\,(s\,I-A)^{-1}\,B\,\begin{bmatrix}
+    U_1(s)\\U_2(s)
+    \end{bmatrix}
+\end{equation}
+The determined transfer functions for the system is determined to be:
+\begin{equation}
+    \begin{gathered}
+        \frac{y_1}{u_1}=\frac{0.001526}{s+0.007475}\\
+        \frac{y_1}{u_2}=\frac{9.456\cdot10^{-6}}{s^2+0.01871\,s+8.397\cdot10^{-5}}\\
+        \frac{y_2}{u_1}=\frac{1.142\cdot10^{-5}}{s^2+0.01704\,s+6.928\cdot10^{-5}}\\
+        \frac{y_2}{u_2}=\frac{0.001789}{s+0.006703}
+    \end{gathered}
+\end{equation}

@@ -1,0 +1,45 @@
+\subsection{Gains, Poles and Zeros}
+The poles, gains and zeros of the linearized system only depends on $A$, $B$ and $C$ and therefore they are the same for deterministic and stochastic model. The poles is the eigenvalues of the linear model.
+\begin{equation}
+\text{poles=}
+    \begin{bmatrix}
+        -0.0075 \\ -0.0067 \\ -0.0112 \\ -0.0103
+    \end{bmatrix}
+\end{equation}
+It is seen that the poles of linearized system is strictly negativ, and therefore the system is asymptotically stable.\\
+The gains is related to the inputs affecting the outputs, and is given by:
+\begin{equation}
+    \begin{matrix}
+        K_{(y,u)}=-C_{(y,:)}\,A^{-1}\,B_{(:,u)}\xrightarrow{}
+        \begin{gathered}
+            K_{(y1,u1)}=0.2041 \\
+            K_{(y1,u2)}=0.1126 \\
+            K_{(y2,u1)}=0.1648 \\
+            K_{(y2,u2)}=0.2669
+        \end{gathered}
+    \end{matrix}
+\end{equation}
+The zeros of the system can be determined by evaluating the system for each input with respect to each output according to the following.
+\begin{equation}
+        \begin{bmatrix}
+            A & B_{(:,u)} \\ C_{(y,:)} & 0
+        \end{bmatrix}\,
+        \begin{bmatrix}
+            x \\ u
+        \end{bmatrix} = z\,
+        \begin{bmatrix}
+            I & 0 \\ 0 & 0
+        \end{bmatrix}\,
+        \begin{bmatrix}
+            x \\ u
+        \end{bmatrix}
+\end{equation}
+The zeros which is a solution to the above and satisfy $|z|<\infty$ is determined to be
+\begin{equation}
+    \begin{gathered}
+        zeros_{(y1,u1)}\xrightarrow{}z_1=-0.0067\,,\,z_2=-0.0103\,,\,z_3=-0.0112\\
+        zeros_{(y1,u2)}\xrightarrow{}z_1=-0.0067\,,\,z_2=-0.0103\\
+        zeros_{(y2,u1)}\xrightarrow{}z_1=-0.0075\,,\,z_2=-0.0112\\
+        zeros_{(y2,u2)}\xrightarrow{}z_1=-0.0075\,,\,z_2=-0.0112\,,\,z_3=-0.0103
+    \end{gathered}
+\end{equation}
