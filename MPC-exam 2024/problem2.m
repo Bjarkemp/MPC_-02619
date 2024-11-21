@@ -1,3 +1,7 @@
+clc, clear
+
+addpath("Functions");
+
 %% Problem 2
 % ----------------------------------------------------------
 % Parameters
