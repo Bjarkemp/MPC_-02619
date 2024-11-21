@@ -1,3 +1,0 @@
-\subsection{P, PI and PID Controllers Compared to MPC}
-As seen in the previous paragraph the classical controllers are able to track a given reference signal, however there is minor overshoots and settling time is increased (compared to the closed loop with MPC), however this could probably be accounted for by better tuning.\\
-In the controller implementation, it is possible to limit the inputs of the system to a certain minimum and maximum value (in this case $u$ range from 0-500). However this only works as a saturation, and is not used as input to find an optimal input signal. It is not possible to set a limit on how fast the inputs changes, which of course in real life implementation can be troublesome.\\
