@@ -27,10 +27,8 @@ At = p(5:8);
 % Simulation scenario
 % -----------------------------------------------------------
 t0 =    0.0;               % [s] Initial time
+% t_int = 10                 % [s] interval time
 tf= 10*60;                 % [s] End time
-N = 100;                        % Number of steps 
-t_int = (tf-t0)/N;
-t = t0:t_int:tf;
 m10 = 0;                   % [g] Liquid mass in tank 1 at time t0
 m20 = 0;                   % [g] Liquid mass in tank 2 at time t0
 m30 = 0;                   % [g] Liquid mass in tank 3 at time t0
@@ -46,16 +44,18 @@ F_0 = [u0',d0'];              % [cm3/s] Manipulated variables and Disturbance va
 
 % -------------------------- 2.1 -----------------------------------------%
 % Solve ODE for this step
-[T, X] = ode15s(@FourTankProcess, [t0 tf], x0, [], u0, d0, p);
+[t, X] = ode15s(@FourTankProcess, [t0 tf], x0, [], u0, d0, p);
 
 Y = mass_to_height(X, [At; rho]);  % Liquid heights in all tanks
 
 Z = mass_to_height(X(:,1:2), [At(1:2); rho]);  % Liquid heights in all tanks
 
-plots()
 % -------------------------- 2.2 -----------------------------------------%
 
+N = 100;                        % Number of steps 
 
+t_int = (tf-t0)/N;
+t = t0:t_int:tf;
 
 d1=2*randn(1,length(t));             
 d2=2*randn(1,length(t)); 
