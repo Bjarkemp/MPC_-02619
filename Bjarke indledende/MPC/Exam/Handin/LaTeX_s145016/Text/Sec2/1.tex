@@ -1,0 +1,79 @@
+\subsection{Deterministic Nonlinear Model}
+\label{sec:Det_Model}
+\subsubsection{Dynamics of the system - Point 1}
+\label{sec:Dynamics}
+The system can be described as deterministic mathematical model on the following form.
+\begin{equation}
+    \dot{x}(t)=f(x(t),u(t),d(t),p)
+\end{equation}
+\textit{x(t)}, \textit{u(t)} and \textit{d(t)} is the states, inputs and disturbances, respectively. \textit{p} is the paramters of the system.\\
+The states, $x$ is the mass of the liquid in each tank. The mass in each tank can be described by a system of differential equations. Notice, the inputs and outputs are listed according to the schematic seen in \cref{fig:Schematic}.
+\begin{equation}
+    \begin{gathered}
+        \dot{x}_1(t)=\rho(q_{1,in}(t)+q_3(t)-q_1(t))\\
+        \dot{x}_2(t)=\rho(q_{2,in}(t)+q_4(t)-q_2(t))\\
+        \dot{x}_3(t)=\rho(q_{3,in}(t)+F_3(t)-q_3(t))\\
+        \dot{x}_4(t)=\rho(q_{4,in}(t)+F_4(t)-q_4(t))\\
+    \end{gathered}
+\end{equation}
+The inputs to the tanks from the pumps is given by
+\begin{equation}
+    \begin{gathered}
+        q_{1,in}(t)=\gamma_1\,F_1\\
+        q_{2,in}(t)=\gamma_2\,F_2\\
+        q_{3,in}(t)=(1-\gamma_2)\,F_2\\
+        q_{4,in}(t)=(1-\gamma_1)\,F_1
+    \end{gathered}
+\end{equation}
+Where $\gamma$ is a measure of the portion of water directed to the repsective tank. The water leaving the tanks is not controlled, but it is purely related to the gravity which can be described by Bernoulli's principle of constant energy. The principle is the sum of the potential and kinetic energy and the work added to the system (see \cref{eq:Bernoulli}) will converge to steady state.
+\begin{equation}
+    \rho\,g\,h_{top}+\frac{1}{2}\,\rho\,v^2_{top}+p=0+\frac{1}{2}\,\rho\,v^2_{bot}+p_{bot}
+    \label{eq:Bernoulli}
+\end{equation}
+The tanks are open, so the pressure at the top of the water level and bottom of each tank is equal to the atmospheric pressure, so this cancels out. Notice that the kinetic energy of the bottom is 0, since the height at the bottom is 0. It is known that the cross section area at the top of the tank is much larger than the cross section area at the bottom of the tank, which yields $v_{top}\ll v_{bot}$. The density is assumed to be constant. Now the Bernoulli principle can be rewritten into an expression determining the flow from each tank
+\begin{equation}
+    \begin{gathered}
+        q_1(t)=a_1\sqrt{2\,g\,h_1(t)}\;,\;h_1(t)=\frac{m_1(t)}{\rho\,A_1}\\
+        q_2(t)=a_2\sqrt{2\,g\,h_2(t)}\;,\;h_2(t)=\frac{m_2(t)}{\rho\,A_2}\\
+        q_3(t)=a_3\sqrt{2\,g\,h_3(t)}\;,\;h_3(t)=\frac{m_3(t)}{\rho\,A_3}\\
+        q_4(t)=a_4\sqrt{2\,g\,h_4(t)}\;,\;h_4(t)=\frac{m_4(t)}{\rho\,A_4}
+    \end{gathered}
+\end{equation}
+Finally the deterministic mathematical model can be determined on the above equations. Notice, the masses ($m$) is the states ($x$). The flow from the pumps ($F_1$ , $F_2$) is the inputs $u$. The flow to tank 3 and 4 ($F_3$ , $F_4$) is the disturbance. 
+\begin{equation}
+    \begin{gathered}
+        \dot{x}_1(t)=\rho\left(\gamma_1\,u_1(t)+a_3\sqrt{2\,g\,\frac{x_3(t)}{\rho\,A_3}}-a_1\sqrt{2\,g\,\frac{x_1(t)}{\rho\,A_1}}\right)\\
+        \dot{x}_2(t)=\rho\left(\gamma_2\,u_2(t)+a_4\sqrt{2\,g\,\frac{x_4(t)}{\rho\,A_4}}-a_2\sqrt{2\,g\,\frac{x_2(t)}{\rho\,A_2}}\right)\\
+        \dot{x}_3(t)=\rho\left((1-\gamma_2)\,u_2(t)+d_1(t)-a_3\sqrt{2\,g\,\frac{x_3(t)}{\rho\,A_3}}\right)\\
+        \dot{x}_4(t)=\rho\left((1-\gamma_1)\,u_1(t)+d_2(t)-a_4\sqrt{2\,g\,\frac{x_4(t)}{\rho\,A_4}}\right)\\
+    \end{gathered}
+    \label{eq:States}
+\end{equation}
+
+\subsubsection{Sensors - Point 2}
+The mathematical model for the sensors (which is the measurements) reveals the correlation between the states and the measured output. By using the expressions for the dynamics as in the previous section, it is possible to determine the model on the following form.
+\begin{equation}
+    y(t)=g(x(t),p)
+\end{equation}
+The height in tank 1 and 2 ($h$) is the outputs ($y$).
+\begin{equation}
+    \begin{gathered}
+        y_1(t)=\frac{x_1(t)}{\rho\,A_1}\\
+        y_2(t)=\frac{x_2(t)}{\rho\,A_2}
+    \end{gathered}
+\end{equation}
+
+\subsubsection{Outputs - Point 3}
+The mathematical models for the outputs is similar to the measurements, however the output is for each tank. Tt is possible to determine the model on the following form.
+\begin{equation}
+    z(t)=h(x(t),p)
+\end{equation}
+The height in tank 1, 2, 3 and 4 ($h$) is the outputs ($y$).
+\begin{equation}
+    \begin{gathered}
+        h_1(t)=\frac{x_1(t)}{\rho\,A_1}\\
+        h_2(t)=\frac{x_2(t)}{\rho\,A_2}\\
+        h_3(t)=\frac{x_3(t)}{\rho\,A_3}\\
+        h_4(t)=\frac{x_4(t)}{\rho\,A_4}
+    \end{gathered}
+\end{equation}

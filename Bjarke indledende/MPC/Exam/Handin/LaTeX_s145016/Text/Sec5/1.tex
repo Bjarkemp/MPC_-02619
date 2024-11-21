@@ -1,0 +1,27 @@
+\subsection{State Space Models}
+The continuous time model models determined in \cref{sec:SS_det} is determined by the following:
+\begin{equation}
+    A=\pdv{f}{x}\,(x_{ss},u_{ss},d_{ss}) \quad
+    B=\pdv{f}{u}\,(x_{ss},u_{ss},d_{ss}) \quad
+    G=\pdv{f}{d}\,(x_{ss},u_{ss},d_{ss}) \quad
+    C=\pdv{g}{x}\,(x_{ss},u_{ss},d_{ss})
+\end{equation}
+The discrete time state space for the deterministic model is given by:
+\begin{equation}
+    \begin{matrix}
+        x(k+1)=A_k\,x(k)+B_k\,u(k)+G_k\,d(k) \qquad X(k=0)=x_0\\
+        y_k=C\,x(k)
+    \end{matrix}
+\end{equation}
+Where the matrices can be determined as:
+\begin{equation}
+   A_k=e^{A\,T_s} \quad B_k=\int_0^{T_s}e^{A\,T_s}B\,dt \quad G_k=\int_0^{T_s}e^{A\,T_s}G\,dt 
+\end{equation}
+The discrete time state space for the stochastic model where the noise is assumed to be piecewise constant is given by:
+\begin{equation}
+    \begin{gathered}
+        x(k+1)=A_k\,x(k)+B_k\,u(k)+G_k\,d(k) \qquad X(k=0)=x_0\\
+        y_k=C\,x(k)+v_k \qquad v\sim N(0,R_{vv}(p))
+    \end{gathered}
+\end{equation}
+Due to the fact that the noise is piecewise constant, the matrices for the deterministic and stochastic model is the same.\\

@@ -1,0 +1,17 @@
+\subsection{Comparison of Linear System and Step Response}
+The time constants ($\tau$) and the gains ($K$) from the linear model is compared with the time constants and gains determined from the transfer functions in \cref{sec:TF_non-lin} as seen in \cref{tab:gain_tau}. The time constant for the $LTI$ system is determined by $\tau=1/|p_i|$ where $p_i$ is the $i^{th}$ pole
+\begin{table}[H] 
+\centering
+\begin{tabular}{c|cc|cc|} \cline{2-5} 
+\multirow{2}{*}{} & \multicolumn{2}{c|}{$K$} & \multicolumn{2}{c|}{$\tau$} \\ \cline{2-5} 
+& \multicolumn{1}{c|}{Linear} & TF & \multicolumn{1}{c|}{Linear} & TF \\ \hline
+\multicolumn{1}{|c|}{$y_1/u_1$} & \multicolumn{1}{c|}{0.2041} & 0.2083 & \multicolumn{1}{c|}{133.8} & 138 \\ \hline
+\multicolumn{1}{|c|}{\multirow{2}{*}{$y_1/u_2$}} & \multicolumn{1}{c|}{\multirow{2}{*}{0.1126}} & \multirow{2}{*}{0.1144} & \multicolumn{1}{c|}{\multirow{2}{*}{$\begin{matrix} 89\\133.8\end{matrix}$}} & \multirow{2}{*}{$\begin{matrix} 90\\138\end{matrix}$} \\
+\multicolumn{1}{|c|}{} & \multicolumn{1}{c|}{} & & \multicolumn{1}{c|}{} & \\ \hline
+\multicolumn{1}{|c|}{\multirow{2}{*}{$y_2/u_1$}} & \multicolumn{1}{c|}{\multirow{2}{*}{0.1648}} & \multirow{2}{*}{0.1686} & \multicolumn{1}{c|}{\multirow{2}{*}{$\begin{matrix} 96.7\\149.2\end{matrix}$}} & \multirow{2}{*}{$\begin{matrix} 80\\173\end{matrix}$} \\
+\multicolumn{1}{|c|}{} & \multicolumn{1}{c|}{} & & \multicolumn{1}{c|}{} & \\ \hline
+\multicolumn{1}{|c|}{$y_2/u_2$} & \multicolumn{1}{c|}{0.2669} & 0.2736 & \multicolumn{1}{c|}{149.2} & 153 \\ \hline  \end{tabular} 
+\caption{Comparison of transfer function parameters}
+\label{tab:gain_tau}
+ \end{table}
+As expected, there is a difference in the gains and time constants determined from the linear model and the step responses. Due to non-linearity of the step response, the results is affected by the size of the step due to the system is "moving away" from the steady state value. 
