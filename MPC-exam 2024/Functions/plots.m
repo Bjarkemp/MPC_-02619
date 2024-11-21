@@ -12,7 +12,7 @@ function plots(t, u, Y)
     figure;
     for i = 1:2
         subplot(2, 1, i);
-        plot(t, u(i, :), 'b');
+        plot(t, u(i, :), 'b', LineWidth = 2);
         xlabel('Time (s)');
         ylabel('Flow rate (cm^3/s)');
         legend(['F' num2str(i)], 'Location', 'southeast');
@@ -24,7 +24,7 @@ function plots(t, u, Y)
     figure;
     for i = 1:4
         subplot(2, 2, i);
-        plot(t, Y(:, i), 'b'); % Assuming Y is given in row-wise time order
+        plot(t, Y(:, i), 'b', LineWidth = 2); % Assuming Y is given in row-wise time order
         xlabel('Time (s)');
         ylabel('Height (cm)');
         title(['Height in Tank ' num2str(i)]);
