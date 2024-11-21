@@ -15,7 +15,7 @@ function plots(t, u, Y)
         plot(t, u(i, :), 'b', LineWidth = 2);
         xlabel('Time (s)');
         ylabel('Flow rate (cm^3/s)');
-        legend(['F' num2str(i)], 'Location', 'southeast');
+        legend(['F' num2str(i)], 'Location', 'best');
         title(['Control Input F' num2str(i)]);
         xlim([0 t_f]);
     end
@@ -28,7 +28,7 @@ function plots(t, u, Y)
         xlabel('Time (s)');
         ylabel('Height (cm)');
         title(['Height in Tank ' num2str(i)]);
-        legend(['Tank ' num2str(i)], 'Location', 'southeast');
+        legend(['Tank ' num2str(i)], 'Location', 'best');
         xlim([0 t_f]);
     end
 end
