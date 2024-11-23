@@ -41,7 +41,6 @@ u0 = [F1_0; F2_0];            % [cm3/s] Manipulated variables
 d0 = [0; 0;];                 % [cm3/s] Disturbance variables at t0
 F_0 = [u0',d0'];              % [cm3/s] MV & DV at t0
 % u = u0.*ones(2, length(t));
-d = d0.*ones(2, length(t));
 
 
 
@@ -86,7 +85,7 @@ for k = 1:N
         i(j)=i_temp;
     end
     % Løs differentialligningerne for dette tidssteg
-    [T_step, X_step] = ode15s(@FourTankProcess, [t0:dt:tf], x, [], u, d, p);
+    [T_step, X_step] = ode15s(@QuadrupleTankProcess, [t], x, [], u, p);
 
     % Gem værdier
     T(k) = t(k);          % Gem tiden
@@ -100,45 +99,3 @@ for k = 1:N
     z = [x(1) x(2)];
 end
 
-%%
-% Helper function to compute height
-convert_mass_to_height = @(X, rho, p) X ./ (rho * p(5:8)');
-% Convert mass to height
-    h = convert_mass_to_height(X, rho, p);
-
-
-
-%% Plot
-figure(1);
-plot(T/60, h, 'LineWidth', 2);
-grid on;
-xlabel('\textbf{t [min]}', 'FontSize', 12, 'Interpreter', 'latex');
-ylabel('\textbf{[cm]}', 'FontSize', 12, 'Interpreter', 'latex');
-legend('T_1', 'T_2', 'T_3', 'T_4', 'Location', 'best');
-% title('closed loop simulation of liquid height in each tank', 'FontSize', 14);
-
-
-% Plot height of individual tanks
-figure(2);
-for i = 1:4
-    subplot(2, 2, i);
-    plot(T/60, h(:, i), 'LineWidth', 2);
-    xlabel('\textbf{t [min]}', 'FontSize', 12, 'Interpreter', 'latex');
-    ylabel('\textbf{h [cm]}', 'FontSize', 12, 'Interpreter', 'latex');
-    % xlim([0 T_total(end)]);
-    title(['Height in tank ', num2str(i)], 'FontSize', 10);
-    grid on;
-end
-
-% Plot flow rates
-figure(3);
-for i = 1:2
-    subplot(1, 2, i);
-    plot(T/60, U(:, i), 'LineWidth', 2);
-    xlabel('\textbf{t [min]}', 'FontSize', 12, 'Interpreter', 'latex');
-    ylabel('Flow [cm^3/s]', 'FontSize', 12);
-    % xlim([0 T_total(end)]);
-    ylim([0 500]);
-    title(['F', num2str(i)], 'FontSize', 10);
-    grid on;
-end

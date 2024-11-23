@@ -3,8 +3,8 @@ function dxdt = FourTankProcess(t,x,u, d, p)
 
  m=x;               % Mass of liquid in each tank [g]
  F=u;               % Flow rates in pumps [cm3/s]
- a=p(1:4,1);        % Pipe cross sectional areas [cm2]
- A=p(5:8,1);        % Tank cross sectional areas [cm2]
+ a=p(1:4);        % Pipe cross sectional areas [cm2]
+ A=p(5:8);        % Tank cross sectional areas [cm2]
  g=p(9,1);          % Valve positions [-]
  gamma=p(10:11,1);  % Acceleration of gravity [cm/s2]
  rho=p(12,1);       % Density of water [g/cm3]
