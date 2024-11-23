@@ -41,7 +41,7 @@ u0 = [F1_0; F2_0];            % [cm3/s] Manipulated variables
 d0 = [0; 0;];                 % [cm3/s] Disturbance variables at t0
 F_0 = [u0',d0'];              % [cm3/s] MV & DV at t0
 u = u0.*ones(2, length(t));
-d = d0.*ones(2, length(t));
+ 
 
 % Solve ODE for this step
 [T, X] = ode15s(@FourTankProcess, [t0:dt:tf], x0, [], u0, d0, p);
