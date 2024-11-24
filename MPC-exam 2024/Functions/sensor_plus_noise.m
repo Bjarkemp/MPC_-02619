@@ -4,4 +4,4 @@ Lr = chol(R,'lower');                                     % Cholesky-dekompositi
 v = (Lr*randn(width(X),length(X)))';                    % Measurement noise. Follows normal distribution with mean=0 and has st.dev of Lr
 v(1,:)=zeros(1,width(X));                               % no measurement noise at t=0
 
-Y = mass_to_height(X, [At; rho])+v; % Heights in all tanks
+Y = mass_to_height(X', At, rho)+v'; % Heights in all tanks

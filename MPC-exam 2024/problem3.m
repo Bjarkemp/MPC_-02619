@@ -1,6 +1,7 @@
-clc, clear, %close all
+clc, clear, close all
 addpath("Functions");
-%% Problem 3
+
+% Problem 3
 % ----------------------------------------------------------
 % Parameters
 % ----------------------------------------------------------
@@ -26,8 +27,8 @@ At = p(5:8);   % [cm2] Cross sectional area
 % Simulation scenario
 % -----------------------------------------------------------
 t0 = 0.0;           % [s] Initial time
-tf= 60*60;          % [s] End time
-dt = 1;     % [s] interval between each step
+tf= 100*60;          % [s] End time
+dt = 10;     % [s] interval between each step
 N = tf/dt;             % Number of steps 
 t = t0:dt:tf;       % [s] time-vector
 m10 = 0;            % [g] Liquid mass in tank 1 at time t0
@@ -57,39 +58,28 @@ d = d0.*ones(2, length(t));
 umin = [1; 1];
 umax = [500; 500];
 
-Kc = [0.001 0.001]; % Controller gain
-taui = [1000 1000]; % Integral time constant for PI controller
-
-h_sp = [25; 20]; % Height Set point
-
+Kc = [0.005]; % Controller gain
+h_sp = [25; 20]; % [cm] Height Set point
 % Converts height set point to mass reference
-r = h_sp.*(rho*At(1:2)'); 
+r = h_sp.*(rho * At(1:2)); 
 
+[X1, U1] = one_Pcontroller(x0, u0, z0, d, p, N, r, Kc, t, umin, umax);
+[y1] = sensor_wo_noise(X1, At, rho);
 
-
-
-[X, U] = two_PIDcontrollers(x0, u0, z0, d, p, N, i0, r, Kc, taui, t, umin, umax);
-
-% Convert mass to height
-[y] = sensor_wo_noise(X, At, rho);
-
-
-
-%% Plot
+% Plot height of individual tanks
 figure(1);
-plot(t/60, y, 'LineWidth', 2);
+plot(t/60, y1, 'LineWidth', 2);
 xlabel('\textbf{t [min]}', 'FontSize', 12, 'Interpreter', 'latex');
 ylabel('\textbf{[cm]}', 'FontSize', 12, 'Interpreter', 'latex');
 legend('T_1', 'T_2', 'T_3', 'T_4', 'Location', 'best');
 xlim([0 t(end)/60])
 % title('closed loop simulation of liquid height in each tank', 'FontSize', 14);
 
-
 % Plot height of individual tanks
 figure(2);
 for i = 1:4
     subplot(2, 2, i);
-    plot(t/60, y(:, i), 'LineWidth', 2);
+    plot(t/60, y1(i,:), 'LineWidth', 2);
     xlabel('\textbf{t [min]}', 'FontSize', 12, 'Interpreter', 'latex');
     ylabel('\textbf{h [cm]}', 'FontSize', 12, 'Interpreter', 'latex');
     xlim([0 t(end)/60])
@@ -101,7 +91,7 @@ end
 figure(3);
 for i = 1:2
     subplot(1, 2, i);
-    plot(t/60, U(:, i), 'LineWidth', 2);
+    plot(t/60, U1(i,:), 'LineWidth', 2);
     xlabel('\textbf{t [min]}', 'FontSize', 12, 'Interpreter', 'latex');
     ylabel('Flow [cm^3/s]', 'FontSize', 12);
     xlim([0 t(end)/60])
@@ -109,12 +99,12 @@ for i = 1:2
     title(['F', num2str(i)], 'FontSize', 10);
 end
 
-%% Only 1 PID controller
-Kc2 = [0.001]; % Controller gain
-taui2 = [1000]; % Integral time constant for PI controller
 
+%% 2 PI-controllers with exactly the same parameters
 
-[X2, U2] = one_PIDcontroller(x0, u0, z0, d, p, N, i0, r, Kc2, taui2, t, umin, umax);
+taui = [1000]; % Integral time constant for PI controller
+
+[X2, U2] = one_PIcontroller(x0, u0, z0, d, p, N, i0, r, Kc, taui, t, umin, umax);
 [y2] = sensor_wo_noise(X2, At, rho);
 
 % Plot height of individual tanks
@@ -131,7 +121,7 @@ xlim([0 t(end)/60])
 figure(5);
 for i = 1:4
     subplot(2, 2, i);
-    plot(t/60, y2(:, i), 'LineWidth', 2);
+    plot(t/60, y2(i,:), 'LineWidth', 2);
     xlabel('\textbf{t [min]}', 'FontSize', 12, 'Interpreter', 'latex');
     ylabel('\textbf{h [cm]}', 'FontSize', 12, 'Interpreter', 'latex');
     xlim([0 t(end)/60])
@@ -143,7 +133,7 @@ end
 figure(6);
 for i = 1:2
     subplot(1, 2, i);
-    plot(t/60, U2(:, i), 'LineWidth', 2);
+    plot(t/60, U2(i,:), 'LineWidth', 2);
     xlabel('\textbf{t [min]}', 'FontSize', 12, 'Interpreter', 'latex');
     ylabel('Flow [cm^3/s]', 'FontSize', 12);
     xlim([0 t(end)/60])
@@ -151,12 +141,17 @@ for i = 1:2
     title(['F', num2str(i)], 'FontSize', 10);
 end
 
-%%
-[X3, U3] = one_Pcontroller(x0, u0, z0, d, p, N, r, Kc2, t, umin, umax);
+%% 2 PI-controllers with differents parameters
+
+Kc = [0.01 0.01]; % Controller gain
+taui = [1000 1000]; % Integral time constant for PI controller
+
+[X3, U3] = two_PIDcontrollers(x0, u0, z0, d, p, N, i0, r, Kc, taui, t, umin, umax);
+
+% Convert mass to height
 [y3] = sensor_wo_noise(X3, At, rho);
 
 
-% Plot height of individual tanks
 figure(7);
 plot(t/60, y3, 'LineWidth', 2);
 xlabel('\textbf{t [min]}', 'FontSize', 12, 'Interpreter', 'latex');
@@ -170,7 +165,7 @@ xlim([0 t(end)/60])
 figure(8);
 for i = 1:4
     subplot(2, 2, i);
-    plot(t/60, y3(:, i), 'LineWidth', 2);
+    plot(t/60, y3(i,:), 'LineWidth', 2);
     xlabel('\textbf{t [min]}', 'FontSize', 12, 'Interpreter', 'latex');
     ylabel('\textbf{h [cm]}', 'FontSize', 12, 'Interpreter', 'latex');
     xlim([0 t(end)/60])
@@ -182,7 +177,7 @@ end
 figure(9);
 for i = 1:2
     subplot(1, 2, i);
-    plot(t/60, U3(:, i), 'LineWidth', 2);
+    plot(t/60, U3(i,:), 'LineWidth', 2);
     xlabel('\textbf{t [min]}', 'FontSize', 12, 'Interpreter', 'latex');
     ylabel('Flow [cm^3/s]', 'FontSize', 12);
     xlim([0 t(end)/60])

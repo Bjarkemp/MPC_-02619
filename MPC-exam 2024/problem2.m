@@ -46,9 +46,9 @@ u = u0.*ones(2, length(t));
 % Solve ODE for this step
 [T, X] = ode15s(@FourTankProcess, [t0:dt:tf], x0, [], u0, d0, p);
 
-[y] = sensor_wo_noise(X, At, rho);
+[y] = sensor_wo_noise(X', At, rho);
 [z] = output(X, At, rho);
-plots(t,u,y)
+plots(t,u,y')
 
 %%
 % -------------------------- 2.2 -----------------------------------------%
@@ -64,7 +64,7 @@ R = [1^2 0 0 0; 0 1^2 0 0; 0 0 0.5^2 0; 0 0 0 0.5^2];     % Covariance for distu
 
 [y_norm] = sensor_plus_noise(x_norm, At, rho, R);
 [z_norm] = output(x_norm, At, rho);
-plots(t,u,y_norm)
+plots(t,u,y_norm')
 
 %---------Figure showing disturbance d1 and d2 in dicrete time-----------
 figure(5)
@@ -105,7 +105,7 @@ d_brownian = sigma*dW';
 
 [z_brownian] = output(x_brownian, At, rho);
 
-plots(t,u,y_brownian)
+plots(t,u,y_brownian')
 
 %---------Figure showing disturbance d1 and d2 in dicrete time-----------
 figure(9)
@@ -138,8 +138,8 @@ u(1,20:40) = 400;
 u(2,100:end) = 100;
 
 [T, X, D, U, x_step] = discrete_fourtankProcess(x0, t, u, d, p);
-[y_step1] = sensor_wo_noise(x_step, At, rho);
-plots(t,u,y_step1)
+[y_step1] = sensor_wo_noise(x_step', At, rho);
+plots(t,u,y_step1')
 [y_step2] = sensor_plus_noise(x_step, At, rho, R);
-plots(t,u,y_step2)
+plots(t,u,y_step2')
 

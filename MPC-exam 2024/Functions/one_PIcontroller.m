@@ -1,12 +1,12 @@
-function [X, U] = one_PIDcontroller(x0, u0, z0, d, p, N, i0, r, Kc, taui, t, umin, umax)
+function [X, U] = one_PIcontroller(x0, u0, z0, d, p, N, i0, r, Kc, taui, t, umin, umax)
 
 z = z0;
 x = x0;
 u = u0;
 i = i0;
 
-X(1,:) = x0;
-U(1,:) = u0;
+X(:,1) = x0;
+U(:,1) = u0;
 
 t0 = t(1);
 tf = t(end);
@@ -24,8 +24,8 @@ for k = 1:N
     % [t_step, X, D, U, x_step] = discrete_fourtankProcess(x0, t, u, d, p);
 
     % Gem værdier
-    X(k+1,:) = x_step(end, :);        % Gem systemtilstandene (højder i tankene)
-    U(k+1,:) = u(end, :);        % Gem manipulerede variable (flowrater F1 og F2)
+    X(:,k+1) = x_step(end, :);        % Gem systemtilstandene (højder i tankene)
+    U(:,k+1) = u;        % Gem manipulerede variable (flowrater F1 og F2)
 
     % Opdater tilstanden
     x = x_step(end, :); % Sørg for at x er en kolonnevektor
