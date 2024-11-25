@@ -1,6 +1,7 @@
 clc, clear, close all
 addpath("Functions");
-%% Problem 2
+
+% Problem 2
 % ----------------------------------------------------------
 % Parameters
 % ----------------------------------------------------------
@@ -27,9 +28,9 @@ At = p(5:8);   % [cm2] Cross sectional area
 % -----------------------------------------------------------
 t0 = 0.0;           % [s] Initial time
 tf= 20*60;          % [s] End time
-N = 200;             % Number of steps 
-dt = (tf-t0)/N;     % [s] interval between each step
-t = t0:dt:tf;       % [s] time-vector
+dt = 30;                    % [s] interval between each step
+N = tf/dt;                  % Number of steps 
+t = t0:dt:tf;               % [s] time-vector
 m10 = 0;            % [g] Liquid mass in tank 1 at time t0
 m20 = 0;            % [g] Liquid mass in tank 2 at time t0
 m30 = 0;            % [g] Liquid mass in tank 3 at time t0
@@ -42,7 +43,7 @@ d0 = [0; 0;];                 % [cm3/s] Disturbance variables at t0
 F_0 = [u0',d0'];              % [cm3/s] MV & DV at t0
 u = u0.*ones(2, length(t));
  
-
+%% -----------------------------2.1-------------------------------------
 % Solve ODE for this step
 [T, X] = ode15s(@FourTankProcess, [t0:dt:tf], x0, [], u0, d0, p);
 
@@ -50,8 +51,8 @@ u = u0.*ones(2, length(t));
 [z] = output(X, At, rho);
 plots(t,u,y')
 
-%%
-% -------------------------- 2.2 -----------------------------------------%
+%% -------------------------- 2.2 -----------------------------------------%
+close all
 
 d1 = 2*randn(1,length(t));             
 d2 = 2*randn(1,length(t)); 
@@ -87,8 +88,8 @@ legend('F_3', 'F_4', 'Location', 'best');
 title('Disturbance following normal distribution (Continuous-time)', ...
     'FontSize', 10);
 
-%%
-% -------------------------- 2.3 -----------------------------------------%
+%% -------------------------- 2.3 -----------------------------------------%
+close all
 
 Ns = length(d0); % Number of realizations
 seed = 100;
@@ -128,14 +129,13 @@ legend('F_3', 'F_4', 'Location', 'best');
 title('Disturbance following Brownian motion (Continuous-time)', ...
     'FontSize', 10);
 
-%%
-% -------------------------- 2.4 -----------------------------------------%
-
+%% -------------------------- 2.4 -----------------------------------------%
+close all
+R = [1^2 0 0 0; 0 1^2 0 0; 0 0 0.5^2 0; 0 0 0 0.5^2];     % Covariance for disturbances in F3 and F4
 
 d0 = [0; 0;];
 d = d0.*ones(2, length(t));
-u(1,20:40) = 400;
-u(2,100:end) = 100;
+
 
 [T, X, D, U, x_step] = discrete_fourtankProcess(x0, t, u, d, p);
 [y_step1] = sensor_wo_noise(x_step', At, rho);
