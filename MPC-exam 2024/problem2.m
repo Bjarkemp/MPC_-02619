@@ -61,7 +61,7 @@ u = u0.*ones(2, length(t));
 
 [T, X, D_norm, U, x_norm] = discrete_fourtankProcess(x0, t, u, d_norm, p);
 
-R = [1^2 0 0 0; 0 1^2 0 0; 0 0 0.5^2 0; 0 0 0 0.5^2];     % Covariance for disturbances in F3 and F4
+R = [1^2 0 0 0; 0 1^2 0 0; 0 0 0.5^2 0; 0 0 0 0.5^2];     % Covariance for measurement noise
 
 [y_norm] = sensor_plus_noise(x_norm, At, rho, R);
 [z_norm] = output(x_norm, At, rho);
