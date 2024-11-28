@@ -37,16 +37,12 @@ m30 = 0;                    % [g] Liquid mass in tank 3 at time t0
 m40 = 0;                    % [g] Liquid mass in tank 4 at time t0
 F1_0 = 300;                 % [cm3/s] Flow rate from pump 1
 F2_0 = 300;                 % [cm3/s] Flow rate from pump 2
-x0 = [m10; m20; m30; m40];  % [g] Start values 
-u0 = [F1_0; F2_0];          % [cm3/s] Manipulated variables 
-d0 = [0; 0;];               % [cm3/s] Disturbance variables at t0
+F3_0 =100;
+F4_0 =150;
+x0 = [m10; m20; m30; m40];    % [g] Start values 
+u0 = [F1_0; F2_0];            % [cm3/s] Manipulated variables 
+d0 = [F3_0; F4_0;];           % [cm3/s] Disturbance variables at t0
 d = d0.*ones(2, length(t));
-
-d_implement1 = find(t==10*60);
-d(1,d_implement1:end) = 150;
-
-% d_implement2 = find(t==15*60);
-% d(2,d_implement2:end) = -50;
 
 umin = [1; 1];
 umax = [500; 500];
@@ -59,7 +55,7 @@ r = h_sp.*(rho * At(1:2));
 Kc = [0.05]; 
 
 [X1, U1, X_tot1, U_tot1, T_tot1] = Pcontrol(x0, u0, d, p, N, r, Kc, t, umin, umax);
-[y1] = sensor_wo_noise(X1, At, rho);
+[y1] = sensor_wo_noise(X1', At, rho);
 
 % Plot height of individual tanks
 figure(1);
@@ -101,7 +97,7 @@ Kc = [0.05];
 taui = [12]; % Integral time constant for PI controller
 
 [X2, U2, X_tot2, U_tot2, T_tot2] = PIcontrol(x0, u0, d, p, N, r, Kc, taui, t, umin, umax);
-[y2] = sensor_wo_noise(X2, At, rho);
+[y2] = sensor_wo_noise(X2', At, rho);
 
 % Plot height of individual tanks
 figure(4);
@@ -143,7 +139,7 @@ tau_i = [12]; % Integral time constant for PI controller
 tau_d = [20];
 
 [X3, U3, X_tot3 U_tot3, T_tot3] = PIDcontroller(x0, u0, d, p, N, r, Kc, tau_i, tau_d, t, umin, umax);
-[y3] = sensor_wo_noise(X3, At, rho);
+[y3] = sensor_wo_noise(X3', At, rho);
 
 % Plot height of individual tanks
 figure(4);

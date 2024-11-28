@@ -37,9 +37,11 @@ m30 = 0;            % [g] Liquid mass in tank 3 at time t0
 m40 = 0;            % [g] Liquid mass in tank 4 at time t0
 F1_0 = 300;         % [cm3/s] Flow rate from pump 1
 F2_0 = 300;         % [cm3/s] Flow rate from pump 2
+F3_0 =100;
+F4_0 =150;
 x0 = [m10; m20; m30; m40];    % [g] Start values 
 u0 = [F1_0; F2_0];            % [cm3/s] Manipulated variables 
-d0 = [0; 0;];                 % [cm3/s] Disturbance variables at t0
+d0 = [F3_0; F4_0;];           % [cm3/s] Disturbance variables at t0
 F_0 = [u0',d0'];              % [cm3/s] MV & DV at t0
 u = u0.*ones(2, length(t));
  
@@ -47,15 +49,15 @@ u = u0.*ones(2, length(t));
 % Solve ODE for this step
 [T, X] = ode15s(@FourTankProcess, [t0:dt:tf], x0, [], u0, d0, p);
 
-[y] = sensor_wo_noise(X', At, rho);
+[y] = sensor_wo_noise(X, At, rho);
 [z] = output(X, At, rho);
 plots(t,u,y')
 
 %% -------------------------- 2.2 -----------------------------------------%
 close all
 
-d1 = 2*randn(1,length(t));             
-d2 = 2*randn(1,length(t)); 
+d1 = F3_0 + 2*randn(1,length(t));             
+d2 = F4_0 + 2*randn(1,length(t)); 
 d_norm = [d1; d2];
 u = u0.*ones(2, length(t));
 
@@ -74,8 +76,8 @@ xlabel('\textbf{t [min]}', 'FontSize', 10, 'Interpreter', 'latex');
 ylabel('[cm^{3}/s]', 'FontSize', 10);
 xlim([0 t(end)/60]);
 legend('F_3', 'F_4', 'Location', 'best');
-title(['Disturbance following normal distribution (Discrete time with steps of ', ...
-    num2str(dt), ' s)'], 'FontSize', 10);
+title(['Sampling time of ', ...
+    num2str(dt), ' s with normal distributed disturbance'], 'FontSize', 10);
 %-------------------------------------------------------------------------
 
 %---------Figure showing disturbance d1 and d2 in Continuous-time--------
@@ -85,7 +87,7 @@ xlabel('\textbf{t [min]}', 'FontSize', 10, 'Interpreter', 'latex');
 ylabel('[cm^{3}/s]', 'FontSize', 10);
 xlim([0 T(end)/60]);
 legend('F_3', 'F_4', 'Location', 'best');
-title('Disturbance following normal distribution (Continuous-time)', ...
+title('Continuous with piece wise normal distributed disturbance', ...
     'FontSize', 10);
 
 %% -------------------------- 2.3 -----------------------------------------%
@@ -96,7 +98,7 @@ seed = 100;
 [W,t,dW] = ScalarStdWienerProcess(tf,N,Ns,seed);
 
 sigma = [2^2 0; 0 2^2];                             % Covariance for disturbances in F3 and F4
-d_brownian = sigma*dW';  
+d_brownian = d0 + sigma*dW';  
 
 
 [T, X, D_brownian, U, x_brownian] = discrete_fourtankProcess(x0, t, u, d_brownian, p);
@@ -115,8 +117,8 @@ xlabel('\textbf{t [min]}', 'FontSize', 10, 'Interpreter', 'latex');
 ylabel('[cm^{3}/s]', 'FontSize', 10);
 xlim([0 t(end)/60]);
 legend('F_3', 'F_4', 'Location', 'best');
-title(['Disturbance following Brownian motion (Discrete time with steps of ', ...
-    num2str(dt), ' s)'], 'FontSize', 10);
+title(['Sampling time of ', ...
+    num2str(dt), ' s with normal distributed disturbance'], 'FontSize', 10);
 %-------------------------------------------------------------------------
 
 %---------Figure showing disturbance d1 and d2 in Continuous-time--------
@@ -126,7 +128,7 @@ xlabel('\textbf{t [min]}', 'FontSize', 10, 'Interpreter', 'latex');
 ylabel('[cm^{3}/s]', 'FontSize', 10);
 xlim([0 T(end)/60]);
 legend('F_3', 'F_4', 'Location', 'best');
-title('Disturbance following Brownian motion (Continuous-time)', ...
+title('Continuous with piece wise normal distributed disturbance', ...
     'FontSize', 10);
 
 %% -------------------------- 2.4 -----------------------------------------%
