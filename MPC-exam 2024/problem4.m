@@ -28,7 +28,7 @@ At = p(5:8);                % [cm2] Cross sectional area
 % -----------------------------------------------------------
 t0 = 0.0;                   % [s] Initial time
 tf= 20*60;                  % [s] End time
-dt = 10;                    % [s] interval between each step
+dt = 1;                    % [s] interval between each step
 N = tf/dt;                  % Number of steps 
 t = t0:dt:tf;               % [s] time-vector
 m10 = 17612.0123864868;                    % [g] Liquid mass in tank 1 at time t0
@@ -72,6 +72,7 @@ tau1_4 = min(t(find(ydev(4,:)>=0.632*ydev(4,end)))) - t(u_stepchange);
 
 tau1 = [tau1_1; tau1_2; tau1_3; tau1_4];
 
+%%
 % Reset the manipulated variables
 u = u0.*ones(2, length(t));
 
@@ -600,3 +601,8 @@ xs = fsolve(@FourTankSystemWrap,x0,[],u0,d0,p);    % Løser differentiallignings
 % (QuadrupleTankProcess) og solver hvad x er når hældningen er 0. Dvs. at
 % den beregner hvad masserne er når der opnås steady state i tankene.
 
+%%
+
+sys = tfest(udev',ydev',1)
+% sys = tfest(udev',ydev',1,'Ts',dt);
+% sys_continuous = d2c(sys)
