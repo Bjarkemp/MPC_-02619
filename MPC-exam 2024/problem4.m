@@ -603,6 +603,6 @@ xs = fsolve(@FourTankSystemWrap,x0,[],u0,d0,p);    % Løser differentiallignings
 
 %%
 
-sys = tfest(udev',ydev',1)
+sys = tfest(udev',ydev',2)
 % sys = tfest(udev',ydev',1,'Ts',dt);
 % sys_continuous = d2c(sys)
