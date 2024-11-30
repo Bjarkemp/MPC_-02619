@@ -72,6 +72,15 @@ tau1_4 = min(t(find(ydev(4,:)>=0.632*ydev(4,end)))) - t(u_stepchange);
 
 tau1 = [tau1_1; tau1_2; tau1_3; tau1_4];
 
+%genrate transfer functions for 1st order system
+sys11 = tfest(udev',ydev(1:2,:)',1)
+% sys = tfest(udev',ydev',1,'Ts',dt);
+% sys_continuous = d2c(sys)
+%generate transfer fucktions for 2nd order system
+sys21 = tfest(udev',ydev(1:2,:)',2)
+% sys = tfest(udev',ydev',1,'Ts',dt);
+% sys_continuous = d2c(sys)
+
 %%
 % Reset the manipulated variables
 u = u0.*ones(2, length(t));
@@ -98,6 +107,15 @@ tau2_3 = min(t(find(ydev(3,:)>=0.632*ydev(3,end)))) - t(u_stepchange);
 tau2_4 = min(t(find(ydev(4,:)>=0.632*ydev(4,end))));
 
 tau2 = [tau2_1; tau2_2; tau2_3; tau2_4];
+
+%genrate transfer functions for 1st order system
+sys12 = tfest(udev',ydev(1:2,:)',1)
+% sys = tfest(udev',ydev',1,'Ts',dt);
+% sys_continuous = d2c(sys)
+%generate transfer fucktions for 2nd order system
+sys22 = tfest(udev',ydev(1:2,:)',2)
+% sys = tfest(udev',ydev',1,'Ts',dt);
+% sys_continuous = d2c(sys)
 
 %%  -------------------- 4.1 25% step change ------------------------------
 close all
@@ -602,7 +620,51 @@ xs = fsolve(@FourTankSystemWrap,x0,[],u0,d0,p);    % Løser differentiallignings
 % den beregner hvad masserne er når der opnås steady state i tankene.
 
 %%
-
-sys = tfest(udev',ydev',1);
+%genrate transfer functions for 1st order system
+sys1 = tfest(udev',ydev(1:2,:)',2)
 % sys = tfest(udev',ydev',1,'Ts',dt);
 % sys_continuous = d2c(sys)
+%generate transfer fucktions for 2nd order system
+sys2 = tfest(udev',ydev(1:2,:)',2)
+% sys = tfest(udev',ydev',1,'Ts',dt);
+% sys_continuous = d2c(sys)
+
+%% state space model
+% Extract the cells and turn to matrix for change in u1
+denominators11 = sys11.denominator; 
+aU11= cell2mat(denominators11(1:2, 1));
+numerators11 = sys11.Numerator;
+bY11 = cell2mat(numerators11(1:2,1));
+denominators21 = sys21.denominator; 
+aU21= cell2mat(denominators21(1:2, 1));
+numerators21 = sys21.Numerator;
+bY21 = cell2mat(numerators21(1:2,1));
+% Extract the cells and turn to matrix for change in u2
+denominators12 = sys12.denominator; 
+aU12= cell2mat(denominators12(1:2, 1));
+numerators12 = sys12.Numerator;
+bY12 = cell2mat(numerators12(1:2,1));
+denominators22 = sys22.denominator; 
+aU22= cell2mat(denominators22(1:2, 1));
+numerators22 = sys22.Numerator;
+bY22 = cell2mat(numerators22(1:2,1));
+
+%u1y1
+b11 = bY11(1,:);
+a11 = aU11(1,:);
+[A11,B11,C11,D11] = tf2ss(b11,a11)
+
+%u1y2
+b21 = bY21(2,:);
+a21 = aU21(2,:);
+[A21,B21,C21,D21] = tf2ss(b21,a21)
+
+%u2y1
+b11 = bY11(1,:);
+a11 = aU11(1,:);
+[A11,B11,C11,D11] = tf2ss(b11,a11)
+
+%y2u2
+b11 = bY11(1,:);
+a11 = aU11(1,:);
+[A11,B11,C11,D11] = tf2ss(b11,a11)
