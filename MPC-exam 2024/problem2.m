@@ -51,7 +51,7 @@ u = u0.*ones(2, length(t));
 
 [y] = sensor_wo_noise(X, At, rho);
 [z] = output(X, At, rho);
-plots(t,u,y')
+plots(t,u,z')
 
 %% -------------------------- 2.2 -----------------------------------------%
 close all
