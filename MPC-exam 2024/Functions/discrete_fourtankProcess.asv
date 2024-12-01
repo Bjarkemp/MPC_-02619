@@ -2,6 +2,7 @@ function [T, X, D, U, x_sample] = discrete_fourtankProcess(x0, t, u, d, p)
 % Initialising compiled masses and time
 xk0 = x0;           % [g] Mass at time t0
 x_sample = x0';     % [g] Sampled mass at time t0
+
 T = [];             % [s] Continuous-time
 X = [];             % [g] Mass in all tanks in Continuous-time
 D = [];             % [cm3/s] Disturbance in Continuous-time
