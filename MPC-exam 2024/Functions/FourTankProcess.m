@@ -20,10 +20,13 @@ function dxdt = FourTankProcess(t,x,u, d, p)
  qin(3,1)=(1-gamma(2))*u(2);
  qin(4,1)=(1-gamma(1))*u(1);
 
+ F3 = d(1);
+ F4 = d(2);
+
 % Compute dxdt
 dxdt=zeros(4,1);
 dxdt(1,1)=rho*(qin(1)+q(3)-q(1));
 dxdt(2,1)=rho*(qin(2)+q(4)-q(2));
-dxdt(3,1)=rho*(qin(3)-q(3)+d(1));
-dxdt(4,1)=rho*(qin(4)-q(4)+d(2));
+dxdt(3,1)=rho*(qin(3)-q(3)+F3);
+dxdt(4,1)=rho*(qin(4)-q(4)+F4);
  end
