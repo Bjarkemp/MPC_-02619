@@ -54,7 +54,7 @@ u = u0.*ones(2, length(t));
 plots(t,u,y')
 
 %% -------------------------- 2.2 -----------------------------------------%
-% close all
+close all
 
 d1 = F3_0 + 2*randn(1,length(t));             
 d2 = F4_0 + 2*randn(1,length(t)); 
@@ -92,7 +92,7 @@ title('Piece wise constant & normal distributed disturbance', ...
 set(gcf, 'Color', 'w');
 
 %% -------------------------- 2.3 -----------------------------------------%
-% close all
+close all
 
 Ns = length(d0); % Number of realizations
 seed = 100;
@@ -132,8 +132,6 @@ legend('F_3', 'F_4', 'Location', 'best');
 title('Piece wise constant disturbance that follows Brownian motion', ...
     'FontSize', 10);
 set(gcf, 'Color', 'w');
-
-%% -------------------------- 2.4 -----------------------------------------%
 close all
 R = [1^2 0 0 0; 0 1^2 0 0; 0 0 0.5^2 0; 0 0 0 0.5^2];     % Covariance for disturbances in F3 and F4
 
@@ -142,7 +140,7 @@ d = d0.*ones(2, length(t));
 
 
 [T, X, D, U, x_step] = discrete_fourtankProcess(x0, t, u, d, p);
-[y_step1] = sensor_wo_noise(x_step', At, rho);
+[y_step1] = sensor_wo_noise(x_step, At, rho);
 plots(t,u,y_step1')
 [y_step2] = sensor_plus_noise(x_step, At, rho, R);
 plots(t,u,y_step2')
