@@ -47,10 +47,12 @@ u = u0.*ones(2, length(t));
 [y0] = sensor_wo_noise(x0', At, rho);
 
 %%  -------------------- 4.1 10% step change ------------------------------
+% Stepchange in u1
 
-u_stepchange = find(t==5*60);
-stepchange = 1 + 0.1;
-u(1,u_stepchange:end) = u0(1)*stepchange;
+u_stepchange = find(t==5*60); % Time that step change occur
+stepchange = 1 + 0.1;         % Step change size
+                              % Adding step change to u1 only
+u(1,u_stepchange:end) = u0(1)*stepchange; 
 
 % Solve ODE for this step
 [T, X, D, U, x] = discrete_fourtankProcess(x0, t, u, d, p);
@@ -58,33 +60,39 @@ u(1,u_stepchange:end) = u0(1)*stepchange;
 [y] = sensor_wo_noise(x, At, rho);
 [z] = output(x, At, rho);
 
-ydev = y-y0;
+% Deviation variables
+ydev = y-y0;                  
 udev = u-u0;
 
 plots(t,udev,ydev')
+sgtitle('Samlet Titel for Plottet');
+hold off
 
-K1 = ydev(:,end) / udev(1,end);
-% finding time constants
+% Steady state gain for T1 and T2
+K1 = ydev(1:2,end) / udev(1,end);
+
+% finding time constants (assuming first order)
 tau1_1 = min(t(find(ydev(1,:)>=0.632*ydev(1,end)))) - t(u_stepchange);
 tau1_2 = min(t(find(ydev(2,:)>=0.632*ydev(2,end)))) - t(u_stepchange);
-tau1_3 = min(t(find(ydev(3,:)>=0.632*ydev(3,end))));
-tau1_4 = min(t(find(ydev(4,:)>=0.632*ydev(4,end)))) - t(u_stepchange);
 
-tau1 = [tau1_1; tau1_2; tau1_3; tau1_4];
+tau1 = [tau1_1; tau1_2];
 
 %genrate transfer functions for 1st order system
 sys11 = tfest(udev',ydev(1:2,:)',1)
 % sys = tfest(udev',ydev',1,'Ts',dt);
 % sys_continuous = d2c(sys)
+
 %generate transfer fucktions for 2nd order system
 sys21 = tfest(udev',ydev(1:2,:)',2)
 % sys = tfest(udev',ydev',1,'Ts',dt);
 % sys_continuous = d2c(sys)
 
-%%
-% Reset the manipulated variables
+%% Step change in u2
+clc
+% Reset the manipulated variables to the start value
 u = u0.*ones(2, length(t));
 
+% Adding step change to u2 only
 u(2,u_stepchange:end) = u0(2)*stepchange;
 
 
@@ -94,19 +102,22 @@ u(2,u_stepchange:end) = u0(2)*stepchange;
 [y] = sensor_wo_noise(x, At, rho);
 [z] = output(x, At, rho);
 
+% Deviation variables
 ydev = y-y0;
 udev = u-u0;
 
 plots(t,udev,ydev')
+sgtitle('Samlet Titel for Plottet');
+hold off
 
-K2 = ydev(:,end) / udev(2,end);
-% finding time constants
+% Steady state gain for T1 and T2
+K2 = ydev(1:2,end) / udev(2,end);
+
+% finding time constants (assuming second order)
 tau2_1 = min(t(find(ydev(1,:)>=0.632*ydev(1,end)))) - t(u_stepchange);
 tau2_2 = min(t(find(ydev(2,:)>=0.632*ydev(2,end)))) - t(u_stepchange);
-tau2_3 = min(t(find(ydev(3,:)>=0.632*ydev(3,end)))) - t(u_stepchange);
-tau2_4 = min(t(find(ydev(4,:)>=0.632*ydev(4,end))));
 
-tau2 = [tau2_1; tau2_2; tau2_3; tau2_4];
+tau2 = [tau2_1; tau2_2];
 
 %genrate transfer functions for 1st order system
 sys12 = tfest(udev',ydev(1:2,:)',1)
@@ -137,6 +148,8 @@ ydev = y-y0;
 udev = u-u0;
 
 plots(t,udev,ydev')
+sgtitle('Samlet Titel for Plottet');
+hold off
 
 K1 = ydev(:,end) / udev(1,end);
 % finding time constants
@@ -164,6 +177,8 @@ ydev = y-y0;
 udev = u-u0;
 
 plots(t,udev,ydev')
+sgtitle('Samlet Titel for Plottet');
+hold off
 
 K2 = ydev(:,end) / udev(2,end);
 % finding time constants
@@ -193,6 +208,8 @@ ydev = y-y0;
 udev = u-u0;
 
 plots(t,udev,ydev')
+sgtitle('Samlet Titel for Plottet');
+hold off
 
 K1 = ydev(:,end) / udev(1,end);
 % finding time constants
@@ -220,6 +237,8 @@ ydev = y-y0;
 udev = u-u0;
 
 plots(t,udev,ydev')
+sgtitle('Samlet Titel for Plottet');
+hold off
 
 K2 = ydev(:,end) / udev(2,end);
 % finding time constants
@@ -252,6 +271,8 @@ ydev = y-y0;
 udev = u-u0;
 
 plots(t,udev,ydev')
+sgtitle('Samlet Titel for Plottet');
+hold off
 
 
 % Reset the manipulated variables
@@ -270,7 +291,8 @@ ydev = y-y0;
 udev = u-u0;
 
 plots(t,udev,ydev')
-
+sgtitle('Samlet Titel for Plottet');
+hold off
 
 %%  -------------------- 4.2 Low noise 25% step change --------------------
 
@@ -624,6 +646,7 @@ xs = fsolve(@FourTankSystemWrap,x0,[],u0,d0,p);    % Løser differentiallignings
 sys1 = tfest(udev',ydev(1:2,:)',2)
 % sys = tfest(udev',ydev',1,'Ts',dt);
 % sys_continuous = d2c(sys)
+<<<<<<< Updated upstream
 %generate transfer fucktions for 2nd order system
 sys2 = tfest(udev',ydev(1:2,:)',2)
 % sys = tfest(udev',ydev',1,'Ts',dt);
@@ -669,4 +692,14 @@ a22 = aU22(1,:);
 b12 = bY11(1,:);
 a12 = aU11(1,:);
 [A22,B22,C22,D22] = tf2ss(b12,a12);
+<<<<<<< HEAD
 
+=======
+=======
+
+
+
+
+%% 4.6 
+>>>>>>> Stashed changes
+>>>>>>> dba112efa0a0382fc7d90f4a7e16b24590750f89

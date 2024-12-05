@@ -28,7 +28,7 @@ At = p(5:8);   % [cm2] Cross sectional area
 % -----------------------------------------------------------
 t0 = 0.0;           % [s] Initial time
 tf= 20*60;          % [s] End time
-dt = 30;                    % [s] interval between each step
+dt = 10;                    % [s] interval between each step
 N = tf/dt;                  % Number of steps 
 t = t0:dt:tf;               % [s] time-vector
 m10 = 0;            % [g] Liquid mass in tank 1 at time t0
@@ -72,8 +72,8 @@ plots(t,u,y_norm')
 %---------Figure showing disturbance d1 and d2 in dicrete time-----------
 figure(5)
 plot(t/60, d_norm, 'LineWidth', 1);
-xlabel('\textbf{t [min]}', 'FontSize', 10, 'Interpreter', 'latex');
-ylabel('[cm^{3}/s]', 'FontSize', 10);
+xlabel('t [min]', 'FontSize', 10);
+ylabel('cm^{3}/s', 'FontSize', 10);
 xlim([0 t(end)/60]);
 legend('F_3', 'F_4', 'Location', 'best');
 title(['Sampling time of ', ...
@@ -83,12 +83,13 @@ title(['Sampling time of ', ...
 %---------Figure showing disturbance d1 and d2 in Continuous-time--------
 figure(6)
 plot(T/60, D_norm, 'LineWidth', 1);
-xlabel('\textbf{t [min]}', 'FontSize', 10, 'Interpreter', 'latex');
-ylabel('[cm^{3}/s]', 'FontSize', 10);
+xlabel('t [min]', 'FontSize', 10);
+ylabel('cm^{3}/s', 'FontSize', 10);
 xlim([0 T(end)/60]);
 legend('F_3', 'F_4', 'Location', 'best');
-title('Continuous with piece wise normal distributed disturbance', ...
+title('Piece wise constant & normal distributed disturbance', ...
     'FontSize', 10);
+set(gcf, 'Color', 'w');
 
 %% -------------------------- 2.3 -----------------------------------------%
 close all
@@ -113,8 +114,8 @@ plots(t,u,y_brownian')
 %---------Figure showing disturbance d1 and d2 in dicrete time-----------
 figure(9)
 plot(t/60, d_brownian, 'LineWidth', 1);
-xlabel('\textbf{t [min]}', 'FontSize', 10, 'Interpreter', 'latex');
-ylabel('[cm^{3}/s]', 'FontSize', 10);
+xlabel('t [min]', 'FontSize', 10);
+ylabel('cm^{3}/s', 'FontSize', 10);
 xlim([0 t(end)/60]);
 legend('F_3', 'F_4', 'Location', 'best');
 title(['Sampling time of ', ...
@@ -128,10 +129,9 @@ xlabel('\textbf{t [min]}', 'FontSize', 10, 'Interpreter', 'latex');
 ylabel('[cm^{3}/s]', 'FontSize', 10);
 xlim([0 T(end)/60]);
 legend('F_3', 'F_4', 'Location', 'best');
-title('Continuous with piece wise normal distributed disturbance', ...
+title('Piece wise constant disturbance that follows Brownian motion', ...
     'FontSize', 10);
-
-%% -------------------------- 2.4 -----------------------------------------%
+set(gcf, 'Color', 'w');
 close all
 R = [1^2 0 0 0; 0 1^2 0 0; 0 0 0.5^2 0; 0 0 0 0.5^2];     % Covariance for disturbances in F3 and F4
 
@@ -140,7 +140,7 @@ d = d0.*ones(2, length(t));
 
 
 [T, X, D, U, x_step] = discrete_fourtankProcess(x0, t, u, d, p);
-[y_step1] = sensor_wo_noise(x_step', At, rho);
+[y_step1] = sensor_wo_noise(x_step, At, rho);
 plots(t,u,y_step1')
 [y_step2] = sensor_plus_noise(x_step, At, rho, R);
 plots(t,u,y_step2')
