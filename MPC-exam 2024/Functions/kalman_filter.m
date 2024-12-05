@@ -1,28 +1,31 @@
-function [x_hat] = kalman_filter(t, x0, y_sample, At, rho, R, A, B, C)
+function [x_hat, x_phat] = kalman_filter(t, x0, y, u, At, rho, R, Q, Ad, Bd, Gd, C, d)
+                    
 
-Lr = chol(R,'lower');
+xhat_k_k1 = x0;  % Start med det initiale tilstandsskøn
+P_k_k1 = 10000 * eye(4);  % Høj initial kovarians for at tage højde for usikkerhed
 
-xk_k1 = x0; % Initial state
-Pk_k1 = 1000* eye(4); % Initial covariance
-x_hat = zeros(4, length(t)); % Pre-allocate estimated states
-y_hat = zeros(4, length(t)); % Pre-allocate estimated outputs
-x_pred_total =[];
- 
 for k = 1:length(t)
+    % Filtering
+    yhat_k_k1 = mass_to_height(xhat_k_k1, At, rho);  % Prediktion af måling
+    ek = y(:,k) - yhat_k_k1;  % Innovationssekvens
 
-    % filtering
-    yk_k1 = mass_to_height(xk_k1,At,rho);
-    ek = y_sample(:,k)-yk_k1;
-    Re_k=C*Pk_k1*C'+Lr;
-    K = Pk_k1*C'*Re_k^-1;
-    xk_k=xk_k1+K*ek; %x_phat(:,k-1) istedet for xk_k1
-    Pk_k=Pk_k1-K*Re_k*K';
+    % Innovationskovarians
+    Re_k = C * P_k_k1 * C' + R;
 
-    x_hat(:,k) = xk_k1; 
+    % Kalman-gain
+    K = P_k_k1 * C' / Re_k;
 
-    xk_k1 =xk_k;
-    Pk_k1 = Pk_k;  
+    % Update step
+    xhat_k_k = xhat_k_k1 + K * ek; 
+    P_k_k = P_k_k1 - K*Re_k*K';
+    % P_k_k = (eye(size(P_k_k1)) - K * C) * P_k_k1;
 
-    % One step prediction
-    x_phat(:,k) = A*xk_h
+    x_hat(:,k) = xhat_k_k;  % Gem skønnet tilstand
+
+    % One-step prediction
+    x_phat(:,k) = Ad * xhat_k_k + Bd * u(:,k) + Gd * d(:,k);
+    xhat_k_k1 = x_phat(:,k);  % Forbered næste iteration
+
+    % Prediktion af fejlkovarians
+    P_k_k1 = Ad * P_k_k * Ad' + Q';
 end

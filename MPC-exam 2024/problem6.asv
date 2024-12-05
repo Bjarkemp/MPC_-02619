@@ -1,4 +1,4 @@
-clc, clear, close all
+clc, clear, %close all
 addpath("Functions");
 
 % Problem 3
@@ -27,8 +27,8 @@ At = p(5:8);                % [cm2] Cross sectional area
 % Simulation scenario
 % -----------------------------------------------------------
 t0 = 0.0;                   % [s] Initial time
-tf= 400*60;                  % [s] End time
-dt = 10;                    % [s] interval between each step
+tf= 20*60;                  % [s] End time
+dt = 5;                    % [s] interval between each step
 N = tf/dt;                  % Number of steps 
 t = t0:dt:tf;               % [s] time-vector
 m10 = 17612.0123864868;                    % [g] Liquid mass in tank 1 at time t0
@@ -42,6 +42,7 @@ F4_0 =150;
 x0 = [m10; m20; m30; m40];    % [g] Start values 
 u0 = [F1_0; F2_0];            % [cm3/s] Manipulated variables 
 d0 = [F3_0; F4_0;];           % [cm3/s] Disturbance variables at t0
+y0 = mass_to_height(x0,At,rho);
 d = d0.*ones(2, length(t));
 u = u0.*ones(2, length(t));
 
@@ -62,25 +63,41 @@ A=[-1/T(1) 0 1/T(3) 0;0 -1/T(2) 0 1/T(4);0 0 -1/T(3) 0;0 0 0 -1/T(4)];
 B=[rho*gamma1 0;0 rho*gamma2; 0 rho*(1-gamma2); rho*(1-gamma1) 0];
 C=diag(1./(rho*At));
 Cz=C(1:2,:);
+G = [0 0; 0 0; rho 0; 0 rho];
+
+R = [(0.4)^2 0 0 0; 0 (0.5)^2 0 0; 0 0 (0.05)^2 0; 0 0 0 (0.1)^2]*4;     % Covariance for measurement noise
+Q = [(40)^2 0 0 0; 0 (50)^2 0 0; 0 0 (5)^2 0; 0 0 0 (10)^2]*4;     % Covariance for process noise
+
+A_aug = [A, G; zeros(size(G, 2), size(A, 1)), eye(size(G, 2))];
+B_aug = [B; zeros(size(G, 2), size(B, 2))];
+G_aug = [G; zeros(size(G, 2), size(G, 2))];
+C_aug = [C zeros(size(C, 2))];
+Q_aug = [Q zeros(size(Q, 2); zeros(size(Q, 2) eye(size(Q, 2))];
+%%
+% ZOH Discretization of Linear System
+[Ad, Bd, Gd] = c2dzoh(A_aug, B_aug, G_aug, dt);
 
 
-R = [(0.4)^2 0 0 0; 0 (0.5)^2 0 0; 0 0 (0.1)^2 0; 0 0 0 (0.2)^2]*10;     % Covariance for measurement noise
-Q = [(40)^2 0 0 0; 0 (50)^2 0 0; 0 0 (5)^2 0; 0 0 0 (10)^2]*10;     % Covariance for process noise
 
+Ns = length(d0); % Number of realizations
+seed = 100;
+[W,t,dW] = ScalarStdWienerProcess(tf,N,Ns,seed);
 
-% Ns = length(d0); % Number of realizations
-% seed = 100;
-% [W,t,dW] = ScalarStdWienerProcess(tf,N,Ns,seed);
-% 
-% sigma = [2^2 0; 0 2^2];                             % Covariance for disturbances in F3 and F4
-% d_brownian = d0 + sigma*dW';  
+sigma = [2^2 0; 0 2^2];                             % Covariance for disturbances in F3 and F4
+d = d0 + sigma*dW'; 
 
-d(1,200:end) = d(1,200)*1.5;
-d(2,800:end) = d(2,800)*0.75;
+u(1,10:end) = u(1,50)*1.5;
+% u(1,80:end) = u(1,80)*0.75;
+
 
 [T, X, D, U, x_sample] = discrete_fourtankProcess_plus_noise(x0, t, u, d, p, Q);
 
 [y_sample] = sensor_plus_noise(x_sample, At, rho, R);
+
+udev = u - u0;
+ydev = y_sample - y0;
+xdev = x_sample - x0';
+ddev = d - d0;
 
 figure(1);
 for i = 1:4
@@ -93,38 +110,16 @@ for i = 1:4
     title(['Liquid height in tank', num2str(i)], 'FontSize', 10);
 end
 
+[x_hat, x_phat] = kalman_filter(t, xdev(1,:)', ydev, udev, At, rho, R, Q, Ad, Bd, Gd, C, ddev);
 
 
 
-xk_k1 = x0; % Initial state
-Pk_k1 = 1000* eye(4); % Initial covariance
-
-x_hat = zeros(4, length(t)); % Pre-allocate estimated states
-y_hat = zeros(4, length(t)); % Pre-allocate estimated outputs
-x_pred_total =[];
-Lr = chol(R,'lower'); 
-
-for k = 1:length(t)
-
-    % only filtering
-    yk_k1 = mass_to_height(xk_k1,At,rho);
-    ek = y_sample(:,k)-yk_k1;
-    Re_k=C*Pk_k1*C'+Lr;
-    K = Pk_k1*C'*Re_k^-1;
-    xk_k=xk_k1+K*ek;
-    Pk_k=Pk_k1-K*Re_k*K';
-
-    x_hat(:,k) = xk_k1;
-
-    xk_k1 =xk_k;
-    Pk_k1 = Pk_k;  
-end
 
 
 figure(2)
 for i = 1:4
     subplot(2,2,i)
-    plot(t/60, x_sample(:,i),t/60, x_hat(i,:), 'LineWidth', 2);
+    plot(t/60, xdev(:,i),t/60, x_hat(i,:), 'LineWidth', 2);
     grid on;
     xlabel('t [min]', 'FontSize', 12);
     ylabel('m [g]', 'FontSize', 12);

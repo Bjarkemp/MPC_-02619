@@ -1,28 +1,34 @@
-function [x_hat] = kalman_filter(t, x0, y_sample, At, rho, R, A, B, C)
-
+function [x_hat, x_phat] = kalman_filter(t, x0, y, u, At, rho, R, Q, Ad, Bd, C, d, p,x)
 Lr = chol(R,'lower');
-
-xk_k1 = x0; % Initial state
-Pk_k1 = 1000* eye(4); % Initial covariance
-x_hat = zeros(4, length(t)); % Pre-allocate estimated states
-y_hat = zeros(4, length(t)); % Pre-allocate estimated outputs
-x_pred_total =[];
+Lq = chol(Q,'lower');                       
+xhat_k_k1 = x0-x; % Initial state
+P_k_k1 = 1000* eye(4);    % Initial covariance
  
-for k = 1:length(t)
+for k = 1:length(t)-1
 
     % filtering
-    yk_k1 = mass_to_height(xk_k1,At,rho);
-    ek = y_sample(:,k)-yk_k1;
-    Re_k=C*Pk_k1*C'+Lr;
-    K = Pk_k1*C'*Re_k^-1;
-    xk_k=xk_k1+K*ek;
-    Pk_k=Pk_k1-K*Re_k*K';
+    yhat_k_k1 = mass_to_height(xhat_k_k1,At,rho);
+    ek = y(:,k)-yhat_k_k1;
+    Re_k=C*P_k_k1*C'+Lr;
+    K = P_k_k1*C'*Re_k^-1;
 
-    x_hat(:,k) = xk_k1; %x_phat(:,k-1)
+    % update
+    xhat_k_k = xhat_k_k1+K*ek; 
+    P_k_k = P_k_k1-K*Re_k*K';
 
-    xk_k1 =xk_k;
-    Pk_k1 = Pk_k;  
+    x_hat(:,k) = xhat_k_k; % gemmer værdierne
 
     % One step prediction
-    x_phat(:,k) = A*xk_h
+    % x_phat(:,k) = Ad*xhat_k_k + Bd*u(:,k);
+    % xhat_k_k1 = x_phat(:,k);  % Value of xhat(k|k-1) in next iteration
+
+
+    P_k_k1 = Ad*P_k_k*Ad'+Lq; % Value of P(k|k-1) in next iteration
+
+    [T, X] = ode15s(@FourTankProcess, [t(k) t(k+1)], x(k,:), [], u(:,k), d(:,k), p);
+    x_phat = (X(end,:) - x0')'
+    xhat_k_k1 = x_phat;  % Value of xhat(k|k-1) in next iteration
+
+
+    x_hat(:,k+1) = x_phat;
 end
