@@ -654,19 +654,13 @@ sys2 = tfest(udev',ydev(1:2,:)',2)
 
 %% state space model
 % sec 1.9 in "LinearModelPredictiveControlToolbox"
-
-transfer_orders = [
-    1, 2;  % u1 → y1, u1 → y2
-    2, 1;  % u2 → y1, u2 → y2
-];
-
 % Extract the cells and turn to matrix for change in u1
 denominators11 = sys11.denominator; 
-aU11= cell2mat(denominators11(1:2,1));
+aU11= cell2mat(denominators11(1:2, 1));
 numerators11 = sys11.Numerator;
 bY11 = cell2mat(numerators11(1:2,1));
 denominators21 = sys21.denominator; 
-aU21= cell2mat(denominators21(1:2,1));
+aU21= cell2mat(denominators21(1:2, 1));
 numerators21 = sys21.Numerator;
 bY21 = cell2mat(numerators21(1:2,1));
 
@@ -693,8 +687,8 @@ a21 = aU21(2,:);
 C12 = [1 0];
 
 %u2y1
-b22 = bY22(2,:);
-a22 = aU22(2,:);
+b22 = bY22(1,:);
+a22 = aU22(1,:);
 [A21,B21,C21,D21] = tf2ss(b22,a22);
 C21 = [1 0];
 
@@ -710,17 +704,12 @@ C22 = 1;
 [Ad21,Bd21]=c2dzoh(A21,B21,dt);
 [Ad22,Bd22]=c2dzoh(A22,B22,dt);
 
-%Hankel matrix
+% Determine Hankel matrix
 H0 = [D11 , D12 ; D21 , D22];
 for i = 0:6
     pil = i*2;
     H(:,pil+1:pil+2) = [C11*Ad11^i*Bd11 , C12*Ad12^i*Bd12 ; C21*Ad21^i*Bd21 , C22*Ad22^i*Bd22];
 end
-
-% Determine which hankel norm ensuring minimal representation
-Hankel2 = [H(:,1:4); H(:,3:6)]; rankH2 = rank(Hankel2)
-Hankel3 = [H(:,1:6) ; H(:,3:8) ; H(:,5:10)]; rankH3 = rank(Hankel3)
-Hankel4 = [H(:,1:8) ; H(:,3:10) ; H(:,5:12) ; H(:,7:14)]; rankH4 = rank(Hankel4)
 
 % The rank is the same! Hankel3 is a minimal representation!
 [K,lambda,L] = svd(Hankel3);
@@ -737,12 +726,4 @@ A_k_tf = inv(sqrtm(lambda_1))*Kappa_1'*H_tilde*L_1*inv(sqrtm(lambda_1))
 B_k_tf = sqrtm(lambda_1)*(L_1(1:2,:))'
 C_k_tf = Kappa_1(1:2,:)*sqrtm(lambda_1)
 D_k_tf = H0
-
-[x11 , x12 , x21 , x22] = MarkovPara(A_k_tf,B_k_tf,C_k_tf,D_k_tf,N);
-figure
-hold on
-plot(t/60,x11,'r'); plot(t/60,x12,'b'); plot(t/60,x21,'m'); plot(t/60,x22,'g')
-hold off;
-legend('u_1y_1','u_1y_2','u_2y_1','u_2y_2')
-xlabel('Time [sec]'); ylabel('Height [cm]')
 
