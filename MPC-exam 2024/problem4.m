@@ -702,39 +702,72 @@ bY22 = cell2mat(numerators22(1,2));
 [Ad21,Bd21]=c2dzoh(A21,B21,dt);
 [Ad22,Bd22]=c2dzoh(A22,B22,dt);
 
-%Hankel matrix
-H0 = [D11 , D12 ; D21 , D22];
-for i = 0:6
-    pil = i*2;
-    H(:,pil+1:pil+2) = [C11*Ad11^i*Bd11 , C12*Ad12^i*Bd12 ; C21*Ad21^i*Bd21 , C22*Ad22^i*Bd22];
+% Initialize the Hankel matrix for D values
+H_start = [D11, D12; D21, D22]; 
+
+% Generate the Hankel matrix iteratively
+H = [];
+for step = 0:6
+    col_idx = step * 2 + 1; % Determine column index
+    H(:, col_idx:col_idx+1) = [
+        C11 * Ad11^step * Bd11, C12 * Ad12^step * Bd12;
+        C21 * Ad21^step * Bd21, C22 * Ad22^step * Bd22
+    ];
 end
 
-% Determine which hankel norm ensuring minimal representation
-Hankel2 = [H(:,1:4); H(:,3:6)]; rankH2 = rank(Hankel2)
-Hankel3 = [H(:,1:6) ; H(:,3:8) ; H(:,5:10)]; rankH3 = rank(Hankel3)
-Hankel4 = [H(:,1:8) ; H(:,3:10) ; H(:,5:12) ; H(:,7:14)]; rankH4 = rank(Hankel4)
+% Analyze the rank of different truncated Hankel matrices to find minimal representation
+H_trunc_2 = [H(:, 1:4); H(:, 3:6)];
+rank_H2 = rank(H_trunc_2);
 
-% The rank is the same! Hankel3 is a minimal representation!
-[K,lambda,L] = svd(Hankel3);
-Kappa_1 = K(:,1:4)
-lambda_1 = lambda(1:4,1:4)
-L_1 = L(:,1:4)
-Kappa_1*lambda_1*L_1'
+H_trunc_3 = [H(:, 1:6); H(:, 3:8); H(:, 5:10)];
+rank_H3 = rank(H_trunc_3);
 
-%New MIMO system (look from H_2 to H_2*N-1)
-H_tilde = [H(:,5:10) ; H(:,7:12) ; H(:,9:14)]
+H_trunc_4 = [H(:, 1:8); H(:, 3:10); H(:, 5:12); H(:, 7:14)];
+rank_H4 = rank(H_trunc_4);
 
-% Now determine state space contributions
-A_k = inv(sqrtm(lambda_1))*Kappa_1'*H_tilde*L_1*inv(sqrtm(lambda_1))
-B_k = sqrtm(lambda_1)*(L_1(1:2,:))'
-C_k = Kappa_1(1:2,:)*sqrtm(lambda_1)
-D_k = H0
+% Based on ranks, Hankel3 provides a minimal representation
+if rank_H3 == rank_H4
+    fprintf('Hankel3 is a minimal realization!\n');
+end
 
-[x11 , x12 , x21 , x22] = MarkovPara(A_k,B_k,C_k,D_k,N);
-figure
-hold on
-plot(t/60,x11,'r'); plot(t/60,x12,'b'); plot(t/60,x21,'m'); plot(t/60,x22,'g')
+% Perform singular value decomposition on the chosen Hankel matrix
+[U, Sigma, V] = svd(H_trunc_3);
+Kappa = U(:, 1:4);        % Truncate U matrix
+Lambda = Sigma(1:4, 1:4); % Retain singular values
+L = V(:, 1:4);            % Truncate V matrix
+
+% Verify reconstruction of the truncated Hankel matrix
+H_reconstructed = Kappa * Lambda * L';
+
+% Define the next part of the Hankel matrix (H_tilde)
+H_tilde = [H(:, 5:10); H(:, 7:12); H(:, 9:14)];
+
+% Compute state-space matrices
+Ak = inv(sqrtm(Lambda)) * Kappa' * H_tilde * L * inv(sqrtm(Lambda));
+Bk = sqrtm(Lambda) * L(1:2, :)';
+Ck = Kappa(1:2, :) * sqrtm(Lambda);
+Dk = H_start;
+
+% Display the results
+disp('State-Space Matrices:');
+disp('A_k:'); disp(Ak);
+disp('B_k:'); disp(Bk);
+disp('C_k:'); disp(Ck);
+disp('D_k:'); disp(Dk);
+
+[x11 , x12 , x21 , x22] = MarkovPara(Ak,Bk,Ck,Dk,N);
+
+figure;
+hold on;
+plot(t/60, x11, '-.k', 'LineWidth', 1.5);
+plot(t/60, x12, '--c', 'LineWidth', 1.5);
+plot(t/60, x21, ':m', 'LineWidth', 1.5);
+plot(t/60, x22, '-g', 'LineWidth', 1.5);
 hold off;
-legend('u_1y_1','u_1y_2','u_2y_1','u_2y_2')
-xlabel('Time [sec]'); ylabel('Height [cm]')
+legend('u_1 \rightarrow y_1', 'u_1 \rightarrow y_2', 'u_2 \rightarrow y_1', 'u_2 \rightarrow y_2', ...
+    'Location', 'northwest');
+xlabel('Time [min]', 'FontSize', 12, 'FontWeight', 'bold');
+ylabel('Height [cm]', 'FontSize', 12, 'FontWeight', 'bold'); 
+title('Response of System Outputs to Inputs', 'FontSize', 14, 'FontWeight', 'bold'); % Add a title
+
 
