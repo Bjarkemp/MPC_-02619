@@ -646,7 +646,7 @@ xs = fsolve(@FourTankSystemWrap,x0,[],u0,d0,p);    % Løser differentiallignings
 sys1 = tfest(udev',ydev(1:2,:)',2)
 % sys = tfest(udev',ydev',1,'Ts',dt);
 % sys_continuous = d2c(sys)
-<<<<<<< Updated upstream
+
 %generate transfer fucktions for 2nd order system
 sys2 = tfest(udev',ydev(1:2,:)',2)
 % sys = tfest(udev',ydev',1,'Ts',dt);
@@ -692,14 +692,4 @@ a22 = aU22(1,:);
 b12 = bY11(1,:);
 a12 = aU11(1,:);
 [A22,B22,C22,D22] = tf2ss(b12,a12);
-<<<<<<< HEAD
 
-=======
-=======
-
-
-
-
-%% 4.6 
->>>>>>> Stashed changes
->>>>>>> dba112efa0a0382fc7d90f4a7e16b24590750f89
