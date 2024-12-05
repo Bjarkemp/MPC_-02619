@@ -725,12 +725,12 @@ Kappa_1*lambda_1*L_1'
 H_tilde = [H(:,5:10) ; H(:,7:12) ; H(:,9:14)]
 
 % Now determine state space contributions
-A_k_tf = inv(sqrtm(lambda_1))*Kappa_1'*H_tilde*L_1*inv(sqrtm(lambda_1))
-B_k_tf = sqrtm(lambda_1)*(L_1(1:2,:))'
-C_k_tf = Kappa_1(1:2,:)*sqrtm(lambda_1)
-D_k_tf = H0
+A_k = inv(sqrtm(lambda_1))*Kappa_1'*H_tilde*L_1*inv(sqrtm(lambda_1))
+B_k = sqrtm(lambda_1)*(L_1(1:2,:))'
+C_k = Kappa_1(1:2,:)*sqrtm(lambda_1)
+D_k = H0
 
-[x11 , x12 , x21 , x22] = MarkovPara(A_k_tf,B_k_tf,C_k_tf,D_k_tf,N);
+[x11 , x12 , x21 , x22] = MarkovPara(A_k,B_k,C_k,D_k,N);
 figure
 hold on
 plot(t/60,x11,'r'); plot(t/60,x12,'b'); plot(t/60,x21,'m'); plot(t/60,x22,'g')
