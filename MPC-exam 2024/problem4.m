@@ -662,47 +662,39 @@ transfer_orders = [
 
 % Extract the cells and turn to matrix for change in u1
 denominators11 = sys11.denominator; 
-aU11= cell2mat(denominators11(1:2,1));
+aU11= cell2mat(denominators11(1,1));
 numerators11 = sys11.Numerator;
-bY11 = cell2mat(numerators11(1:2,1));
+bY11 = cell2mat(numerators11(1,1));
 denominators21 = sys21.denominator; 
-aU21= cell2mat(denominators21(1:2,1));
+aU21= cell2mat(denominators21(2,1));
 numerators21 = sys21.Numerator;
-bY21 = cell2mat(numerators21(1:2,1));
+bY21 = cell2mat(numerators21(2,1));
 
 % Extract the cells and turn to matrix for change in u2
 denominators12 = sys12.denominator; 
-aU12= cell2mat(denominators12(1:2, 1));
+aU12= cell2mat(denominators12(2, 2));
 numerators12 = sys12.Numerator;
-bY12 = cell2mat(numerators12(1:2,1));
+bY12 = cell2mat(numerators12(2,2));
 denominators22 = sys22.denominator; 
-aU22= cell2mat(denominators22(1:2, 1));
+aU22= cell2mat(denominators22(1, 2));
 numerators22 = sys22.Numerator;
-bY22 = cell2mat(numerators22(1:2,1));
+bY22 = cell2mat(numerators22(1,2));
 
 %u1y1
-b11 = bY11(1,:);
-a11 = aU11(1,:);
-[A11,B11,C11,D11] = tf2ss(b11,a11);
-C11 = 1;
+[A11,B11,C11,D11] = tf2ss(bY11,aU11);
+% C11 = 1;
 
 %u1y2
-b21 = bY21(2,:);
-a21 = aU21(2,:);
-[A12,B12,C12,D12] = tf2ss(b21,a21);
-C12 = [1 0];
+[A12,B12,C12,D12] = tf2ss(bY21,aU21);
+% C12 = [1 0];
 
 %u2y1
-b22 = bY22(2,:);
-a22 = aU22(2,:);
-[A21,B21,C21,D21] = tf2ss(b22,a22);
-C21 = [1 0];
+[A21,B21,C21,D21] = tf2ss(bY22,aU22);
+% C21 = [1 0];
 
 %y2u2
-b12 = bY11(1,:);
-a12 = aU11(1,:);
-[A22,B22,C22,D22] = tf2ss(b12,a12);
-C22 = 1;
+[A22,B22,C22,D22] = tf2ss(bY12,aU12);
+% C22 = 1;
 
 %discretization of system
 [Ad11,Bd11]=c2dzoh(A11,B11,dt);
