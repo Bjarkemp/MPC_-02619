@@ -1,13 +1,19 @@
-function [x_hat, x_phat] = kalman_filter(t, x0, y, u, At, rho, R, Q, Ad, Bd, Gd, C, d)
+function [x_hat, x_phat] = kalman_filter(t, xdev, udev, ddev, At, rho, R, Q, Ad, Bd, Gd, C)
                     
+Lr = chol(R,'lower');                                   % Cholesky-dekomposition. It just gives me the standard deviation instead of variance.
+v = Lr*(randn(size(xdev)));                    % Measurement noise. Follows normal distribution with mean=0 and has st.dev of Lr
 
-xhat_k_k1 = x0;  % Start med det initiale tilstandsskøn
+xhat_k_k1 = xdev(:,1);  % Start med det initiale tilstandsskøn
 P_k_k1 = 10000 * eye(4);  % Høj initial kovarians for at tage højde for usikkerhed
 
 for k = 1:length(t)
     % Filtering
-    yhat_k_k1 = mass_to_height(xhat_k_k1, At, rho);  % Prediktion af måling
-    ek = y(:,k) - yhat_k_k1;  % Innovationssekvens
+
+    yhat_k_k1 = C*xhat_k_k1 + v(:,k);  % Prediktion af måling
+    ydev(:,k) = C*xdev(:,k) + v(:,k);
+
+    
+    ek = ydev(:,k) - yhat_k_k1;  % Innovationssekvens
 
     % Innovationskovarians
     Re_k = C * P_k_k1 * C' + R;
@@ -23,9 +29,9 @@ for k = 1:length(t)
     x_hat(:,k) = xhat_k_k;  % Gem skønnet tilstand
 
     % One-step prediction
-    x_phat(:,k) = Ad * xhat_k_k + Bd * u(:,k) + Gd * d(:,k);
+    x_phat(:,k) = Ad * xhat_k_k + Bd * udev(:,k) + Gd * ddev(:,k);
     xhat_k_k1 = x_phat(:,k);  % Forbered næste iteration
 
     % Prediktion af fejlkovarians
-    P_k_k1 = Ad * P_k_k * Ad' + Q';
+    P_k_k1 = Ad * P_k_k * Ad' + Q;
 end
