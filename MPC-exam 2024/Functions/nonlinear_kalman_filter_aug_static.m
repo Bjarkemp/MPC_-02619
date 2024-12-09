@@ -1,47 +1,61 @@
-function [x_hat, x_phat] = nonlinear_kalman_filter_aug_static(t, xdev, udev, ddev,  x0, u, d, At, rho, R, Q_aug, Ad_aug, Gw_aug, C_aug, p)
-%--------------------------------------------------------------------------
+function [x_hat, x_phat] = nonlinear_kalman_filter_aug_static(t, xdev, udev, ddev, x0, u, d, At, rho, R, Q_aug, Ad_aug, Gw_aug, C_aug, p)
+% nonlinear_kalman_filter_aug_static: Implements a nonlinear augmented Kalman filter
+% with a static gain for a four-tank process system.
+
+% Initialize variables
 x_hat = [];
-Lr = chol(R,'lower');                % Cholesky-dekomposition. It just gives me the standard deviation instead of variance.
-v = Lr*(randn(size(xdev)));          % Measurement noise. Follows normal distribution with mean=0 and has st.dev of Lr
-xhat_k_k1 = [xdev(:,1); ddev(:,1)];  % Start med det initiale tilstandsskøn
-P = idare(Ad_aug',C_aug',Gw_aug*Q_aug*Gw_aug',R); % Høj initial kovarians for at tage højde for usikkerhed
+Lr = chol(R,'lower');                % Cholesky decomposition of measurement noise covariance
+v = Lr * randn(size(xdev));          % Generate measurement noise
+xhat_k_k1 = [xdev(:,1); ddev(:,1)];  % Initial augmented state estimate
 
+% Solve the discrete-time algebraic Riccati equation for steady-state error covariance
+P = idare(Ad_aug', C_aug', Gw_aug * Q_aug * Gw_aug', R); 
 
+% Kalman filter loop
 for k = 1:length(t)-1
-    % Filtering
-    % Innovationskovarians
+    % ** Filtering Step **
+    % Compute the innovation covariance
     Re_k = C_aug * P * C_aug' + R;
-    % Kalman-gain
-    K = P * C_aug' * inv(Re_k);
-    yk = mass_to_height(xdev(:,k),At,rho) + v(:,k);
-    yhat_k_k1 = mass_to_height(xhat_k_k1(1:4),At,rho) + v(:,k);  % Prediktion af måling
-    ek = yk - yhat_k_k1;  % Innovationssekvens
-    % Update step
+
+    % Compute Kalman gain
+    K = P * C_aug' / Re_k;
+
+    % Current measurement with noise
+    yk = mass_to_height(xdev(:,k), At, rho) + v(:,k); 
+
+    % Predicted measurement with noise
+    yhat_k_k1 = mass_to_height(xhat_k_k1(1:4), At, rho) + v(:,k); 
+
+    % Compute the innovation (measurement residual)
+    ek = yk - yhat_k_k1; 
+
+    % Update step: Correct state estimate using Kalman gain
     xhat_k_k = xhat_k_k1 + K * ek; 
-    % One-step prediction
-    x_k_k = xhat_k_k(1:4)+x0;
-    [Tk, Xk] = ode15s(@FourTankProcess, [t(k) t(k+1)], x_k_k, ...
-        [], u(:,k), d(:,k), p);
+
+    % ** Prediction Step **
+    % Simulate the nonlinear system dynamics
+    x_k_k = xhat_k_k(1:4) + x0;  % Corrected state in the original domain
+    [~, Xk] = ode15s(@FourTankProcess, [t(k) t(k+1)], x_k_k, [], u(:,k), d(:,k), p);
+
+    % Compute deviation for next step
     x_phat(:,k) = [Xk(end,:)' - x0; d(:,k) - d(:,1)];
 
-    % P_k_k = P_k_k1 - K*Re_k*K';
-    x_hat = [x_hat xhat_k_k];  % Gem skønnet tilstand
-    % Prediktion af fejlkovarians
-    % P_k_k1 = Ad_aug * P_k_k * Ad_aug' + Gw_aug*Q_aug*Gw_aug';
-    xhat_k_k1 = x_phat(:,k);  % Forbered næste iteration
+    % Store the corrected state
+    x_hat = [x_hat xhat_k_k];  
+
+    % Prepare for the next iteration
+    xhat_k_k1 = x_phat(:,k);  
 end
 
+% Final update for the last time step
 k = length(t);
-
 Re_k = C_aug * P * C_aug' + R;
-    % Kalman-gain
-    K = P * C_aug' * inv(Re_k);
-    yk = mass_to_height(xdev(:,k),At,rho) + v(:,k);
-    % yhat_k_k1 = C_aug*xhat_k_k1 + v(:,k);  % Prediktion af måling
-    yhat_k_k1 = mass_to_height(xhat_k_k1(1:4),At,rho) + v(:,k);  % Prediktion af måling
-    ek = yk - yhat_k_k1;  % Innovationssekvens
-    % Update step
-    xhat_k_k = xhat_k_k1 + K * ek; 
+K = P * C_aug' / Re_k;
+yk = mass_to_height(xdev(:,k), At, rho) + v(:,k); 
+yhat_k_k1 = mass_to_height(xhat_k_k1(1:4), At, rho) + v(:,k); 
+ek = yk - yhat_k_k1;  
+xhat_k_k = xhat_k_k1 + K * ek; 
 
-    x_hat = [x_hat xhat_k_k];
-%-------------------------------------------------------------------------
+% Store the final corrected state
+x_hat = [x_hat xhat_k_k];
+end
