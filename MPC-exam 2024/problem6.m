@@ -63,9 +63,9 @@ d = d0 + sigma*dW';
 
 
 % Step changes in manipulated variables
-u(2,50:end) = u(2,59)*0.5;
+u(2,50:end) = u(2,50)*0.5;
 u(1,200:end) = u(1,200)*1.25;
-% u(1,900:end) = u(1,900)*1.15;
+
 
 R = [(0.4)^2 0 0 0; 0 (0.5)^2 0 0; 0 0 (0.05)^2 0; 0 0 0 (0.1)^2]*4;     % Covariance for measurement noise
 Q = [(40)^2 0 0 0; 0 (50)^2 0 0; 0 0 (5)^2 0; 0 0 0 (10)^2]*4;           % Covariance for process noise
