@@ -750,10 +750,10 @@ Dk = H_start;
 
 % Display the results
 disp('State-Space Matrices:');
-disp('A_k:'); disp(Ak);
-disp('B_k:'); disp(Bk);
-disp('C_k:'); disp(Ck);
-disp('D_k:'); disp(Dk);
+disp('Ak:'); disp(Ak);
+disp('Bk:'); disp(Bk);
+disp('Ck:'); disp(Ck);
+disp('Dk:'); disp(Dk);
 
 [x11 , x12 , x21 , x22] = MarkovPara(Ak,Bk,Ck,Dk,N);
 
