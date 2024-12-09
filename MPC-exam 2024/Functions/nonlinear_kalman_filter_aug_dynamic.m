@@ -28,7 +28,7 @@ for k = 1:length(t)-1
     yk = mass_to_height(xdev(:, k), At, rho) + v(:, k); 
 
     % Predicted measurement with noise
-    yhat_k_k1 = mass_to_height(xhat_k_k1(1:4), At, rho) + v(:, k); 
+    yhat_k_k1 = mass_to_height(xhat_k_k1(1:4), At, rho) ; 
 
     % Compute the innovation (measurement residual)
     ek = yk - yhat_k_k1; 

@@ -30,7 +30,7 @@ for k = 1:length(t)
     yk = mass_to_height(xdev(:, k), At, rho) + v(:, k); % True measurement with noise
 
     % Predicted measurement
-    yhat_k_k1 = C_aug * xhat_k_k1 + v(:, k); % Predicted measurement using the current estimate
+    yhat_k_k1 = C_aug * xhat_k_k1 ; % Predicted measurement using the current estimate
 
     % Innovation sequence
     ek = yk - yhat_k_k1;                % Difference between actual and predicted measurement
