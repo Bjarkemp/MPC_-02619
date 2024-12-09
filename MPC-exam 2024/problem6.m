@@ -31,10 +31,10 @@ tf= 50*60;                  % [s] End time
 dt = 10;                    % [s] interval between each step
 N = tf/dt;                  % Number of steps 
 t = t0:dt:tf;               % [s] time-vector
-m10 = 1000;     % [g] Liquid mass in tank 1 at time t0
-m20 = 2000;     % [g] Liquid mass in tank 2 at time t0
-m30 = 3000;     % [g] Liquid mass in tank 3 at time t0
-m40 = 8000;     % [g] Liquid mass in tank 4 at time t0
+m10 = 17612.0123865358;     % [g] Liquid mass in tank 1 at time t0
+m20 = 29640.6694949367;     % [g] Liquid mass in tank 2 at time t0
+m30 = 4644.21948249842;     % [g] Liquid mass in tank 3 at time t0
+m40 = 9378.49308238594;     % [g] Liquid mass in tank 4 at time t0
 F1_0 = 300;                 % [cm3/s] Flow rate from pump 1
 F2_0 = 300;                 % [cm3/s] Flow rate from pump 2
 F3_0 =100;
@@ -114,8 +114,8 @@ Q2 = Phi_22' * Phi_12;
 
 
 % Kalman filter
-[x_hat1_dyn, x_phat1_dyn] = kalman_filter_dynamic(t, xdev, udev, ddev, At, rho, R, Q2, Ad, Bd, Gd, C);
-[x_hat1_sta, x_phat1_sta] = kalman_filter_static(t, xdev, udev, ddev, At, rho, R, Q2, Ad, Bd, Gd, C);
+[x_hat1_dyn, x_phat1_dyn] = kalman_filter_dynamic(t, xdev, udev, ddev, At, rho, R, Q, Ad, Bd, Gd, C);
+[x_hat1_sta, x_phat1_sta] = kalman_filter_static(t, xdev, udev, ddev, At, rho, R, Q, Ad, Bd, Gd, C);
 
 % From deviation variables to 
 x = xdev + x0;
