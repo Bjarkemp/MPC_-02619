@@ -95,7 +95,6 @@ u = u0.*ones(2, length(t));
 % Adding step change to u2 only
 u(2,u_stepchange:end) = u0(2)*stepchange;
 
-
 % Solve ODE for this step
 [T, X, D, U, x] = discrete_fourtankProcess(x0, t, u, d, p);
 
@@ -768,6 +767,4 @@ legend('u_1 \rightarrow y_1', 'u_1 \rightarrow y_2', 'u_2 \rightarrow y_1', 'u_2
     'Location', 'northwest');
 xlabel('Time [min]', 'FontSize', 12, 'FontWeight', 'bold');
 ylabel('Height [cm]', 'FontSize', 12, 'FontWeight', 'bold'); 
-title('Response of System Outputs to Inputs', 'FontSize', 14, 'FontWeight', 'bold'); % Add a title
-
-
+title('Response of System Outputs to Inputs', 'FontSize', 14, 'FontWeight', 'bold'); 
