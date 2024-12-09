@@ -60,8 +60,8 @@ Kc = [0.05];
 % Plot height of individual tanks
 figure(1);
 plot(t/60, y1, 'LineWidth', 2);
-xlabel('\textbf{t [min]}', 'FontSize', 12, 'Interpreter', 'latex');
-ylabel('\textbf{[cm]}', 'FontSize', 12, 'Interpreter', 'latex');
+xlabel('t [min]', 'FontSize', 12);
+ylabel('height [cm]', 'FontSize', 12);
 legend('T_1', 'T_2', 'T_3', 'T_4', 'Location', 'best');
 xlim([0 t(end)/60])
 % title('closed loop simulation of liquid height in each tank', 'FontSize', 14);
@@ -71,8 +71,8 @@ figure(2);
 for i = 1:4
     subplot(2, 2, i);
     plot(t/60, y1(i,:), 'LineWidth', 2);
-    xlabel('\textbf{t [min]}', 'FontSize', 12, 'Interpreter', 'latex');
-    ylabel('\textbf{h [cm]}', 'FontSize', 12, 'Interpreter', 'latex');
+    xlabel('t [min]', 'FontSize', 12);
+    ylabel('height [cm]', 'FontSize', 12);
     xlim([0 t(end)/60])
     % ylim([0 50]);
     title(['Height in tank ', num2str(i)], 'FontSize', 10);
@@ -83,8 +83,8 @@ figure(3);
 for i = 1:2
     subplot(1, 2, i);
     plot(t/60, U1(i,:), 'LineWidth', 2);
-    xlabel('\textbf{t [min]}', 'FontSize', 12, 'Interpreter', 'latex');
-    ylabel('Flow [cm^3/s]', 'FontSize', 12);
+    xlabel('t [min]', 'FontSize', 12);
+    ylabel('height [cm]', 'FontSize', 12);
     xlim([0 t(end)/60])
     ylim([0 500]);
     title(['F', num2str(i)], 'FontSize', 10);
@@ -94,7 +94,7 @@ end
 %% 2 PI-controllers with exactly the same parameters
 
 Kc = [0.05]; 
-taui = [12]; % Integral time constant for PI controller
+taui = [3]; % Integral time constant for PI controller
 
 [X2, U2, X_tot2, U_tot2, T_tot2] = PIcontrol(x0, u0, d, p, N, r, Kc, taui, t, umin, umax);
 [y2] = sensor_wo_noise(X2', At, rho);
@@ -102,8 +102,8 @@ taui = [12]; % Integral time constant for PI controller
 % Plot height of individual tanks
 figure(4);
 plot(t/60, y2, 'LineWidth', 2);
-xlabel('\textbf{t [min]}', 'FontSize', 12, 'Interpreter', 'latex');
-ylabel('\textbf{[cm]}', 'FontSize', 12, 'Interpreter', 'latex');
+xlabel('t [min]', 'FontSize', 12);
+ylabel('height [cm]', 'FontSize', 12);
 legend('T_1', 'T_2', 'T_3', 'T_4', 'Location', 'best');
 xlim([0 t(end)/60])
 % title('closed loop simulation of liquid height in each tank', 'FontSize', 14);
@@ -113,8 +113,8 @@ figure(5);
 for i = 1:4
     subplot(2, 2, i);
     plot(t/60, y2(i,:), 'LineWidth', 2);
-    xlabel('\textbf{t [min]}', 'FontSize', 12, 'Interpreter', 'latex');
-    ylabel('\textbf{h [cm]}', 'FontSize', 12, 'Interpreter', 'latex');
+    xlabel('t [min]', 'FontSize', 12);
+    ylabel('height [cm]', 'FontSize', 12);
     xlim([0 t(end)/60])
     ylim([0 50]);
     title(['Height in tank ', num2str(i)], 'FontSize', 10);
@@ -125,8 +125,8 @@ figure(6);
 for i = 1:2
     subplot(1, 2, i);
     plot(t/60, U2(i,:), 'LineWidth', 2);
-    xlabel('\textbf{t [min]}', 'FontSize', 12, 'Interpreter', 'latex');
-    ylabel('Flow [cm^3/s]', 'FontSize', 12);
+    xlabel('t [min]', 'FontSize', 12);
+    ylabel('height [cm]', 'FontSize', 12);
     xlim([0 t(end)/60])
     ylim([0 500]);
     title(['F', num2str(i)], 'FontSize', 10);
@@ -135,40 +135,40 @@ end
 %% 2 PID-controllers with exactly the same parameters
 
 Kc = [0.05]; 
-tau_i = [12]; % Integral time constant for PI controller
-tau_d = [20];
+tau_i = [3]; % Integral time constant for PI controller
+tau_d = [15];
 
 [X3, U3, X_tot3 U_tot3, T_tot3] = PIDcontroller(x0, u0, d, p, N, r, Kc, tau_i, tau_d, t, umin, umax);
 [y3] = sensor_wo_noise(X3', At, rho);
 
 % Plot height of individual tanks
-figure(4);
+figure(7);
 plot(t/60, y3, 'LineWidth', 2);
-xlabel('\textbf{t [min]}', 'FontSize', 12, 'Interpreter', 'latex');
-ylabel('\textbf{[cm]}', 'FontSize', 12, 'Interpreter', 'latex');
+xlabel('t [min]', 'FontSize', 12);
+ylabel('height [cm]', 'FontSize', 12);
 legend('T_1', 'T_2', 'T_3', 'T_4', 'Location', 'best');
 xlim([0 t(end)/60])
 % title('closed loop simulation of liquid height in each tank', 'FontSize', 14);
 
 % Plot height of individual tanks
-figure(5);
+figure(8);
 for i = 1:4
     subplot(2, 2, i);
     plot(t/60, y3(i,:), 'LineWidth', 2);
-    xlabel('\textbf{t [min]}', 'FontSize', 12, 'Interpreter', 'latex');
-    ylabel('\textbf{h [cm]}', 'FontSize', 12, 'Interpreter', 'latex');
+    xlabel('t [min]', 'FontSize', 12);
+    ylabel('height [cm]', 'FontSize', 12);
     xlim([0 t(end)/60])
     ylim([0 50]);
     title(['Height in tank ', num2str(i)], 'FontSize', 10);
 end
 
 % Plot flow rates
-figure(6);
+figure(9);
 for i = 1:2
     subplot(1, 2, i);
     plot(t/60, U3(i,:), 'LineWidth', 2);
-    xlabel('\textbf{t [min]}', 'FontSize', 12, 'Interpreter', 'latex');
-    ylabel('Flow [cm^3/s]', 'FontSize', 12);
+    xlabel('t [min]', 'FontSize', 12);
+    ylabel('height [cm]', 'FontSize', 12);
     xlim([0 t(end)/60])
     ylim([0 500]);
     title(['F', num2str(i)], 'FontSize', 10);
