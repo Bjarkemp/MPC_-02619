@@ -52,7 +52,7 @@ xs = fsolve(@FourTankSystemWrap,x0,[],u0,d0,p);    % Løser differentiallignings
 % den beregner hvad masserne er når der opnås steady state i tankene.
 
 
-%%
+%% Linear Kalman filter (Not Augmented)
 
 % Modelling the disturbance as Brownian motion
 Ns = length(d0); % Number of realizations
@@ -71,6 +71,7 @@ R = [(0.4)^2 0 0 0; 0 (0.5)^2 0 0; 0 0 (0.05)^2 0; 0 0 0 (0.1)^2]*4;     % Covar
 Q = [(40)^2 0 0 0; 0 (50)^2 0 0; 0 0 (5)^2 0; 0 0 0 (10)^2]*4;           % Covariance for process noise
 
 [T, X, D, U, x_sample] = discrete_fourtankProcess_plus_noise(x0, t, u, d, p, Q);
+
 
 % Deviation variables
 udev = u - u0;
@@ -96,33 +97,37 @@ Gw = eye(4);
 
 
 % Kalman filter
-[x_hat1, x_phat1] = kalman_filter_dynamic(t, xdev, udev, ddev, At, rho, R, Q, Ad, Bd, Gd, C);
+[x_hat1_dyn, x_phat1_dyn] = kalman_filter_dynamic(t, xdev, udev, ddev, At, rho, R, Q, Ad, Bd, Gd, C);
+[x_hat1_sta, x_phat1_sta] = kalman_filter_static(t, xdev, udev, ddev, At, rho, R, Q, Ad, Bd, Gd, C);
 
 % From deviation variables to 
 x = xdev + x0;
-xhat1 = x_hat1 + x0;
+xhat1_dyn = x_hat1_dyn + x0;
+xhat1_sta = x_hat1_sta + x0;
 
-y1 = sensor_plus_noise(x',At,rho,R);
-yhat1 = mass_to_height(xhat1(1:4,:),At,rho);
-z1 = output(xhat1(1:4,:)',At,rho);
+y = sensor_plus_noise(x',At,rho,R);
+yhat1_dyn = mass_to_height(xhat1_dyn(1:4,:),At,rho);
+yhat1_sta = mass_to_height(xhat1_sta(1:4,:),At,rho);
+
 
 figure(1)
 for i = 1:4
     subplot(2,2,i)
-    plot(t/60, y1(i,:),'b', 'LineWidth', 2); 
+    plot(t/60, y(i,:),'b', 'LineWidth', 2); 
     hold on;
-    plot(t/60, yhat1(i,:),'r', 'LineWidth', 1);
+    plot(t/60, yhat1_dyn(i,:),'r', 'LineWidth', 1);
+    hold on;
+    plot(t/60, yhat1_sta(i,:),'k--', 'LineWidth', 1);
     hold off;
     grid on;
-    xlabel('t [min]', 'FontSize', 12);
-    ylabel('h [cm]', 'FontSize', 12);
+    ylabel('height [cm]', 'FontSize', 12);
     xlim([0 t(end)/60]);
-    legend('Height in tank', 'Kalman filter', 'Location', 'best');
-    title(['Height in tank ', num2str(i)], 'FontSize', 10);
+    legend('Measured height', 'Dynamic Kalman filter', 'Static Kalman filter', 'Location', 'best');
+    title(['Tank ', num2str(i)], 'FontSize', 10);
 end
 sgtitle('Not-Augmented Linear Kalman filter', 'FontSize', 14, 'FontWeight', 'bold');
 
-%%
+%% Augmented Linear Kalman filter 
 
 % Diskretisering af det kontinuerte system
 [Ad, Bd, Gd] = c2dzoh(A, B, G, dt);
@@ -135,59 +140,69 @@ Bd_aug = [Bd; zeros(size(Gd, 2), size(Bd, 2))];
 Gd_aug = [Gd; zeros(size(Gd, 2), size(Gd, 2))];
 C_aug = [C, zeros(size(C, 1), size(Gd, 2))];
 Q_aug = [Q, zeros(size(Q, 1), size(Gd, 2)); zeros(size(Gd, 2), size(Q, 2)), eye(size(Gd, 2))];
-Gw_aug =  [Gwd, zeros(4,2); zeros(2,6)];
+Gw_aug =  [Gwd, zeros(4,2); zeros(2,4) eye(2,2)];
 
-[x_hat2, x_phat2] = kalman_filter_aug_dynamic(t, xdev, udev, ddev, At, rho, R, Q_aug, Ad_aug, Bd_aug, Gd_aug, Gw_aug, C_aug);
-
+[x_hat2_dyn, x_phat2_dyn] = kalman_filter_aug_dynamic(t, xdev, udev, ddev, At, rho, R, Q_aug, Ad_aug, Bd_aug, Gd_aug, Gw_aug, C_aug);
+[x_hat2_sta, x_phat2_sta] = kalman_filter_aug_static(t, xdev, udev, ddev, At, rho, R, Q_aug, Ad_aug, Bd_aug, Gd_aug, Gw_aug, C_aug);
 
 % From deviation variables to 
-x = xdev + x0;
-xhat2 = x_hat2(1:4,:) + x0;
+xhat2_dyn = x_hat2_dyn(1:4,:) + x0;
+xhat2_sta = x_hat2_sta(1:4,:) + x0;
 
-y2 = sensor_plus_noise(x',At,rho,R);
-yhat2 = mass_to_height(xhat2(1:4,:),At,rho);
-z2 = output(xhat2(1:4,:)',At,rho);
+yhat2_dyn = mass_to_height(xhat2_dyn(1:4,:),At,rho);
+yhat2_sta = mass_to_height(xhat2_sta(1:4,:),At,rho);
 
 figure(2)
 for i = 1:4
     subplot(2,2,i)
-    plot(t/60, y2(i,:),'b', 'LineWidth', 2); 
+    plot(t/60, y(i,:),'b', 'LineWidth', 2); 
     hold on;
-    plot(t/60, yhat2(i,:),'r', 'LineWidth', 1);
+    plot(t/60, yhat2_dyn(i,:),'r', 'LineWidth', 1);
+    hold on;
+    plot(t/60, yhat2_sta(i,:),'k--', 'LineWidth', 1);
     hold off;
     grid on;
     xlabel('t [min]', 'FontSize', 12);
-    ylabel('h [cm]', 'FontSize', 12);
+    ylabel('height [cm]', 'FontSize', 12);
     xlim([0 t(end)/60]);
-    legend('Height in tank', 'Kalman filter', 'Location', 'best');
-    title(['Height in tank ', num2str(i)], 'FontSize', 10);
+    legend('Measured height', 'Dynamic Kalman filter', 'Static Kalman filter', 'Location', 'best');
+    title(['Tank ', num2str(i)], 'FontSize', 10);
 end
 sgtitle('Augmented Linear Kalman filter', 'FontSize', 14, 'FontWeight', 'bold');
+%% Augmented non-Linear Kalman filter 
 
 
+[x_hat3_dyn, x_phat3_dyn] = nonlinear_kalman_filter_aug_dynamic(t, xdev, udev, ddev, x0, u, d, At, rho, R, Q_aug, Ad_aug, Gw_aug, C_aug, p);
+[x_hat3_sta, x_phat3_sta] = nonlinear_kalman_filter_aug_static(t, xdev, udev, ddev,  x0, u, d, At, rho, R, Q_aug, Ad_aug, Gw_aug, C_aug, p);
 
-[x_hat3, x_phat3] = nonlinear_kalman_filter_aug_dynamic(t, xdev, udev, ddev, x0, u, d, At, rho, R, Q_aug, Ad_aug, Gw_aug, C_aug, p);
 
 % From deviation variables to 
-x = xdev + x0;
-xhat3 = x_hat3(1:4,:) + x0;
+xhat3_dyn = x_hat3_dyn(1:4,:) + x0;
+xhat3_sta = x_hat3_sta(1:4,:) + x0;
 
-y3 = sensor_plus_noise(x',At,rho,R);
-yhat3 = mass_to_height(xhat3(1:4,:),At,rho);
-z3 = output(xhat3(1:4,:)',At,rho);
+yhat3_dyn = mass_to_height(xhat3_dyn(1:4,:),At,rho);
+yhat3_sta = mass_to_height(xhat3_sta(1:4,:),At,rho);
 
 figure(3)
 for i = 1:4
     subplot(2,2,i)
-    plot(t(1:end)/60, y3(i,:),'b', 'LineWidth', 2); 
+    plot(t/60, y(i,:),'b', 'LineWidth', 2); 
     hold on;
-    plot(t(1:end)/60, yhat3(i,:),'r', 'LineWidth', 1);
+    plot(t/60, yhat3_dyn(i,:),'r', 'LineWidth', 1);
+    hold on;
+    plot(t/60, yhat3_sta(i,:),'k--', 'LineWidth', 1);
     hold off;
     grid on;
     xlabel('t [min]', 'FontSize', 12);
-    ylabel('h [cm]', 'FontSize', 12);
+    ylabel('height [cm]', 'FontSize', 12);
     xlim([0 t(end)/60]);
-    legend('Height in tank', 'Kalman filter', 'Location', 'best');
-    title(['Height in tank ', num2str(i)], 'FontSize', 10);
+    legend('Measured height', 'Dynamic Kalman filter', 'Static Kalman filter', 'Location', 'best');
+    title(['Tank ', num2str(i)], 'FontSize', 10);
 end
 sgtitle('Augmented Non-linear Kalman filter', 'FontSize', 14, 'FontWeight', 'bold');
+
+
+
+
+
+
