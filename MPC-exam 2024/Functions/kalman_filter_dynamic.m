@@ -1,34 +1,42 @@
 function [x_hat, x_phat] = kalman_filter_dynamic(t, xdev, udev, ddev, At, rho, R, Q, Ad, Bd, Gd, C)
-                    
-Lr = chol(R,'lower');                 % Cholesky-dekomposition. It just gives me the standard deviation instead of variance.
-v = Lr*(randn(size(xdev)));           % Measurement noise. Follows normal distribution with mean=0 and has st.dev of Lr
 
-xhat_k_k1 = xdev(:,1);                % Start med det initiale tilstandsskøn
-P_k_k1 = 10000 * eye(4);              % Høj initial kovarians for at tage højde for usikkerhed
+% Compute Cholesky decomposition of measurement noise covariance R
+Lr = chol(R, 'lower');              % Decompose R into a lower triangular matrix
+v = Lr * (randn(size(xdev)));       % Generate measurement noise with covariance R
+
+% Initialize the state estimate and error covariance
+xhat_k_k1 = xdev(:, 1);             % Initial state estimate
+P_k_k1 = 1000 * eye(size(Ad, 1));   % Initial error covariance, large to reflect high uncertainty
+
+% Preallocate space for estimated states and predictions
+x_hat = zeros(size(xdev));          % State estimates
+x_phat = zeros(size(xdev));         % One-step-ahead state predictions
 
 for k = 1:length(t)
+    % Filtering step: predict and correct
     
-    % Filtering
-    yhat_k_k1 = C*xhat_k_k1 + v(:,k); % Prediktion af måling
-    ydev(:,k) = C*xdev(:,k) + v(:,k);
+    % Predict the measurement
+    yhat_k_k1 = C * xhat_k_k1 + v(:, k);  % Predicted measurement
+    ydev(:, k) = C * xdev(:, k) + v(:, k); % Actual measurement with noise
 
-    ek = ydev(:,k) - yhat_k_k1;       % Innovationssekvens
+    % Compute the innovation sequence (measurement residual)
+    ek = ydev(:, k) - yhat_k_k1;         % Difference between actual and predicted measurement
 
-    % Innovationskovarians
-    Re_k = C * P_k_k1 * C' + R;
+    % Compute the innovation covariance
+    Re_k = C * P_k_k1 * C' + R;          % Combine predicted error covariance and measurement noise
 
-    % Kalman-gain
-    K = P_k_k1 * C' * inv(Re_k);
+    % Calculate the Kalman gain
+    K = P_k_k1 * C' / Re_k;              % Optimal Kalman gain
 
-    % Update step
-    xhat_k_k = xhat_k_k1 + K * ek; 
-    P_k_k = P_k_k1 - K*Re_k*K';
-    x_hat(:,k) = xhat_k_k;            % Gem skønnet tilstand
+    % Update step: correct the state estimate using the Kalman gain
+    xhat_k_k = xhat_k_k1 + K * ek;       % Correct the prior estimate
+    P_k_k = P_k_k1 - K * Re_k * K';      % Update the error covariance
+    x_hat(:, k) = xhat_k_k;              % Store the corrected state estimate
 
-    % One-step prediction
-    x_phat(:,k) = Ad * xhat_k_k + Bd * udev(:,k) + Gd * ddev(:,k);
-    xhat_k_k1 = x_phat(:,k);  % Forbered næste iteration
+    % One-step prediction step: predict the next state and covariance
+    x_phat(:, k) = Ad * xhat_k_k + Bd * udev(:, k) + Gd * ddev(:, k); % Predict the next state
+    P_k_k1 = Ad * P_k_k * Ad' + Q;       % Predict the next error covariance
+    xhat_k_k1 = x_phat(:, k);            % Prepare the next iteration with predicted state
+end
 
-    % Prediktion af fejlkovarians
-    P_k_k1 = Ad * P_k_k * Ad' + Q;
 end
