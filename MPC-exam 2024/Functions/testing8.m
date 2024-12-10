@@ -42,6 +42,7 @@ F2_0 = 300;                 % [cm3/s] Flow rate from pump 2
 F3_0 = 100;
 F4_0 = 150;
 x0 = [m10; m20; m30; m40];    % [g] Start values 
+x00 = [0,0,0,0]
 u0 = [F1_0; F2_0];            % [cm3/s] Manipulated variables 
 d0 = [F3_0; F4_0;];           % [cm3/s] Disturbance variables at t0
 d = d0.*ones(2, length(t));
@@ -52,7 +53,7 @@ u = u0.*ones(2, length(t));
 
 %linearization
 % Steady State
-xs = fsolve(@FourTankSystemWrap,x0,[],u0,d0,p);
+xs = fsolve(@FourTankSystemWrap,x00,[],u0,d0,p);
 ys = sensor_wo_noise(xs,at,rho);
 zs = sensor_wo_noise(xs,at,rho);
 
