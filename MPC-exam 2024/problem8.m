@@ -27,8 +27,8 @@ At = p(5:8);                % [cm2] Cross sectional area
 % Simulation scenario
 % -----------------------------------------------------------
 t0 = 0.0;                   % [s] Initial time
-tf= 20*60;                  % [s] End time
-dt = 20;                    % [s] interval between each step
+tf= 60;                  % [s] End time
+dt = 1;                    % [s] interval between each step
 N = tf/dt;                  % Number of steps 
 t = t0:dt:tf;               % [s] time-vector
 Ph = 5;                     % Prediction horizon
@@ -80,45 +80,25 @@ C = sys.C;
 % Define MPC parameters
 Q = 100 * eye(size(C, 1));  % Weight on output tracking
 S = 0.1 * eye(size(B, 2)); % Weight on control effort
-% N is Prediction horizon
+% Ph is Prediction horizon
 
 % Design MPC
 MPC_sys = UnconstrainedMPCDesign(A, B, C, Q, S, Ph);
 
 % Kalman filter parameters
-R_hat = [(0.4)^2 0 0 0; 0 (0.5)^2 0 0; 0 0 (0.05)^2 0; 0 0 0 (0.1)^2]*4;     % Covariance for measurement noise
-Q_hat = [(40)^2 0 0 0; 0 (50)^2 0 0; 0 0 (5)^2 0; 0 0 0 (10)^2]*4;           % Covariance for process noise
-
-u_vec = zeros(1, tf / dt); % Initial control input
-R = repmat(ones(1, Ph), tf / dt, 1); % Constant reference trajectory
+Q_hat = 40 * eye(size(A));      % Process noise covariance (state dimension)
+R_hat = 0.5 * eye(size(C, 1));  % Measurement noise covariance (output dimension)
 
 % Generate noisy measurements
-y_meas = C * x0 + 0.1 * randn(1, tf / dt); % Example noisy measurement
+y_meas = C * x0 + 0.1 * randn(size(C, 1), tf / dt); % Noisy measurement example
 
 % Pack inputs
-R_full = repmat(ones(size(C,1), 1), Ph + tf/dt, 1);
-inputs = {x0, u_vec, R, y_meas};
+sigma_R = R_hat; % Use the measurement noise covariance here
+u0 = zeros(size(B, 2), 1); % Initial control input
+Rd = 5;
+d_k = mvnrnd(zeros(tf/dt,size(C,1)),eye(2)*Rd)';
+v_k = mvnrnd(zeros(tf/dt,size(C,1)),eye(2)*sigma_R)';
+inputs = {x0, u0, R, d_k, v_k};
 
 % Simulation
-[y, u, x_hat] = MPC_Sim_Unconstrained(A, B, C, MPC_sys, Q_hat, R_hat, tf, dt, inputs, Ph)
-
-% Plot results
-t = (0:dt:tf-dt);
-figure;
-subplot(3, 1, 1);
-plot(t, y);
-title('Output Trajectory');
-xlabel('Time (s)');
-ylabel('Output');
-
-subplot(3, 1, 2);
-plot(t, u);
-title('Control Input');
-xlabel('Time (s)');
-ylabel('Input');
-
-subplot(3, 1, 3);
-plot(t, x_hat(1, 1:end-1));
-title('State Estimate (x1)');
-xlabel('Time (s)');
-ylabel('State');
+[y, u] = MPC_Sim_Unconstrained(sys, MPC_sys, Q_hat, R_hat, tf, dt, inputs, Ph);
