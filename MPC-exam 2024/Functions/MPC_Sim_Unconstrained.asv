@@ -1,13 +1,13 @@
-function [y, u, x_hat] = MPC_Sim_Unconstrained(sys, MPC_sys, Q_hat, R_hat, tf, Ts, inputs, N)
+function [y, u, x_hat] = MPC_Sim_Unconstrained(A, B, C, MPC_sys, Q_hat, R_hat, tf, dt, inputs, N)
     % MPC_SIM_UNCONSTRAINED_KALMAN simulates an MPC with a Kalman filter for state estimation.
     %
     % Inputs:
-    %   sys     - Discrete-time state-space system (struct with A, B, C matrices)
+    %   A, B, C - Discrete-time state-space matrices
     %   MPC_sys - Struct containing MPC matrices (H, M_x0, M_r, etc.)
-    %   Q_hat   - Process noise covariance matrix
+    %   Q_hat   - Process noise covariance matrix 
     %   R_hat   - Measurement noise covariance matrix
     %   t_f     - Final simulation time
-    %   Ts      - Sampling time
+    %   dt      - Sampling time
     %   inputs  - Cell array containing:
     %             {x0, u_vec, R, y_meas} 
     %   N       - Prediction horizon
@@ -16,11 +16,6 @@ function [y, u, x_hat] = MPC_Sim_Unconstrained(sys, MPC_sys, Q_hat, R_hat, tf, T
     %   y       - Output trajectory
     %   u       - Control input trajectory
     %   x_hat   - State estimate trajectory
-
-    % Unpack system matrices
-    A = sys.A;
-    B = sys.B;
-    C = sys.C;
 
     % Unpack MPC matrices
     H = MPC_sys.H;
@@ -34,7 +29,7 @@ function [y, u, x_hat] = MPC_Sim_Unconstrained(sys, MPC_sys, Q_hat, R_hat, tf, T
     y_meas = inputs{4}; % Measured outputs with noise
 
     % Simulation time steps
-    num_steps = tf / Ts;
+    num_steps = tf / dt;
 
     % Initialize variables
     x = zeros(size(A, 1), num_steps + 1);  % True states (for debugging/validation)

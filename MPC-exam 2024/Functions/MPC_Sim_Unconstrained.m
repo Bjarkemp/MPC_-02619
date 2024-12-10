@@ -1,26 +1,21 @@
-function [y, u, x_hat] = MPC_Sim_Unconstrained(sys, MPC_sys, Q_hat, R_hat, tf, Ts, inputs, N)
-    % MPC_SIM_UNCONSTRAINED_KALMAN simulates an MPC with a Kalman filter for state estimation.
+function [y, u, x_hat] = MPC_Sim_Unconstrained(A, B, C, MPC_sys, Q_hat, R_hat, tf, dt, inputs, pH)
+    % MPC_SIM_UNCONSTRAINED simulates an MPC with a Kalman filter for state estimation.
     %
     % Inputs:
-    %   sys     - Discrete-time state-space system (struct with A, B, C matrices)
+    %   A, B, C - Discrete-time state-space matrices
     %   MPC_sys - Struct containing MPC matrices (H, M_x0, M_r, etc.)
-    %   Q_hat   - Process noise covariance matrix 
+    %   Q_hat   - Process noise covariance matrix
     %   R_hat   - Measurement noise covariance matrix
-    %   t_f     - Final simulation time
-    %   Ts      - Sampling time
+    %   tf      - Final simulation time
+    %   dt      - Sampling time
     %   inputs  - Cell array containing:
-    %             {x0, u_vec, R, y_meas} 
-    %   N       - Prediction horizon
+    %             {x0, u_vec, R, y_meas}
+    %   pH      - Prediction horizon
     %
     % Outputs:
     %   y       - Output trajectory
     %   u       - Control input trajectory
     %   x_hat   - State estimate trajectory
-
-    % Unpack system matrices
-    A = sys.A;
-    B = sys.B;
-    C = sys.C;
 
     % Unpack MPC matrices
     H = MPC_sys.H;
@@ -34,26 +29,32 @@ function [y, u, x_hat] = MPC_Sim_Unconstrained(sys, MPC_sys, Q_hat, R_hat, tf, T
     y_meas = inputs{4}; % Measured outputs with noise
 
     % Simulation time steps
-    num_steps = tf / Ts;
+    num_steps = round(tf / dt);
 
     % Initialize variables
-    x = zeros(size(A, 1), num_steps + 1);  % True states (for debugging/validation)
+    x = zeros(size(A, 1), num_steps + 1);  % True states
     x_hat = zeros(size(A, 1), num_steps + 1); % State estimates
     u = zeros(size(B, 2), num_steps);      % Control inputs
-    y = zeros(size(C, 1), num_steps);      % Outputs (predicted)
+    y = zeros(size(C, 1), num_steps);      % Outputs
     x(:, 1) = x0;                          % Set initial state
     x_hat(:, 1) = x0;                      % Initialize state estimate
 
     % Kalman filter initialization
     P = eye(size(A)); % Initial estimation error covariance
 
+    % Ensure R is properly extended to cover the prediction horizon
+    if size(R, 1) < pH * size(C, 1)
+        R = repmat(R, ceil(pH * size(C, 1) / size(R, 1)), 1); % Extend if too short
+    end
+
     % Loop over time steps
     for i = 1:num_steps
         % Compute reference for the current prediction horizon
-        R_current = R((i-1)*size(C,1)+1:i*size(C,1)*N, 1);
+        rows_remaining = min(size(R, 1) - (i-1)*size(C,1), pH*size(C,1));
+        R_current = R((i-1)*size(C,1)+1:(i-1)*size(C,1)+rows_remaining, 1);
 
         % Solve unconstrained MPC problem
-        g = M_x0 * x_hat(:, i) + M_r * R_current; % Linear term in the cost function
+        g = M_x0 * x_hat(:, i) + M_r(1:size(H, 1), 1:rows_remaining) * R_current; % Linear term in the cost function
         u_mpc = -H \ g; % Solve quadratic program for unconstrained MPC (direct solve)
 
         % Apply first control input
