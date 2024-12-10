@@ -16,7 +16,7 @@ x_phat = zeros(size(xdev));         % One-step-ahead state predictions
 
 for k = 1:length(t)
     % Measurement prediction
-    yhat_k_k1 = C * xhat_k_k1 + v(:, k);   % Predicted measurement with noise
+    yhat_k_k1 = C * xhat_k_k1 ;   % Predicted measurement with noise
     ydev(:, k) = C * xdev(:, k) + v(:, k); % Actual measurement with noise
 
     % Innovation sequence (measurement residual)

@@ -16,7 +16,7 @@ for k = 1:length(t)
     % Filtering step: predict and correct
     
     % Predict the measurement
-    yhat_k_k1 = C * xhat_k_k1 + v(:, k);  % Predicted measurement
+    yhat_k_k1 = C * xhat_k_k1 ;  % Predicted measurement
     ydev(:, k) = C * xdev(:, k) + v(:, k); % Actual measurement with noise
 
     % Compute the innovation sequence (measurement residual)
