@@ -30,7 +30,7 @@ function [A, B, C, G, Gw] = linearized_models(xs, At, at, rho, gamma1, gamma2, g
 
     elseif strcmp(noise_type, 'brownian')
         % Brownian motion disturbances
-        G = G
+        G = G;
         % G = G * sigma;  % Scale disturbance propagation by covariance
     end
 

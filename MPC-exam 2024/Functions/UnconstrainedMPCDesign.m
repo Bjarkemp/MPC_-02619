@@ -1,4 +1,4 @@
-function MPC_sys = UnconstrainedMPCDesign(A, B, C, Q, S, Ph)
+function MPC_sys = UnconstrainedMPCDesign(A, B, C, Q, Ph)
     % UNCONSTRAINEDMPCDESIGN designs an Unconstrained MPC for a discrete-time system.
     %
     % Inputs:
@@ -18,7 +18,7 @@ function MPC_sys = UnconstrainedMPCDesign(A, B, C, Q, S, Ph)
     Q_z = kron(eye(Ph), Q);  % Block diagonal weight matrix
 
     % Define H (quadratic term in cost function)
-    H = Gamma' * Q_z * Gamma + kron(eye(Ph), S); % Prediction weight + control weight
+    H = Gamma' * Q_z * Gamma; % Prediction weight + control weight
 
     % Define M_x0 (linear term related to initial state)
     M_x0 = Gamma' * Q_z * phi;
