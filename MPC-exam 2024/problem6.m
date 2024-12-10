@@ -63,9 +63,9 @@ d = d0 + sigma*dW';
 
 
 % Step changes in manipulated variables
-u(2,50:end) = u(2,50)*0.5;
-u(1,200:end) = u(1,200)*1.25;
-d(1,250:end) = d(1,250:end)+100;
+% u(2,50:end) = u(2,50)*0.5;
+% u(1,200:end) = u(1,200)*1.25;
+% d(1,250:end) = d(1,250:end)+100;
 
 
 R = [(0.4)^2 0 0 0; 0 (0.5)^2 0 0; 0 0 (0.05)^2 0; 0 0 0 (0.1)^2]*4;     % Covariance for measurement noise
@@ -156,7 +156,7 @@ Gw_aug =  [Gwd, zeros(4,2); zeros(2,4) eye(2,2)];
 
 [x_hat2_dyn, x_phat2_dyn] = kalman_filter_aug_dynamic(t, xdev, udev, ddev, At, rho, R, Q_aug, Ad_aug, Bd_aug, Gd_aug, Gw_aug, C_aug);
 [x_hat2_sta, x_phat2_sta] = kalman_filter_aug_static(t, xdev, udev, ddev, At, rho, R, Q_aug, Ad_aug, Bd_aug, Gd_aug, Gw_aug, C_aug);
-[x_hat2_dyn_pre, x_phat2_dyn_pre, P_pred2_dyn_pre, x_pred2_dyn_pre] = kalman_filter_aug_dynamic_pred(t, xdev, udev, ddev, At, rho, R, Q_aug, Ad_aug, Bd_aug, Gd_aug, Gw_aug, C_aug);
+[x_hat2_dyn_pre, x_phat2_dyn_pre] = kalman_filter_aug_dynamic_pred(t, xdev, udev, ddev, At, rho, R, Q_aug, Ad_aug, Bd_aug, Gd_aug, Gw_aug, C_aug);
 
 % From deviation variables to 
 xhat2_dyn = x_hat2_dyn(1:4,:) + x0;

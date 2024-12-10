@@ -64,7 +64,8 @@ sigma = [2^2 0; 0 2^2];
 %Stochastic Brownian
 [Ad,Bd,Gd]=c2dzoh(A,B,G,dt);
 D = zeros(2,4);
-sys = ss(Ad,[Bd,Gd],C(1:2,:),D);
+% sys = ss(Ad,[Bd,Gd],C(1:2,:),D);
+sys = ss(Ad,Bd,C(1:2,:),D(:,1:2));
 
 A = sys.A;
 B = sys.B;

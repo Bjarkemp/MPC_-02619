@@ -21,6 +21,7 @@ function [y, u] = MPC_Sim_Unconstrained(sys, MPC_sys, Q_hat, R_hat, t_f, Ts, inp
     x_hat = zeros(size(A, 1), num_steps + 1); % State estimate
     y = zeros(size(C, 1), num_steps);         % Output trajectory
     u = zeros(size(B, 2), num_steps);         % Control inputs
+    
 
     % Loop over simulation
     for i = 1:num_steps
