@@ -1,0 +1,32 @@
+% Example data (Adjusted for consistency)
+H = eye(8);                      % Quadratic cost (identity for simplicity)
+g = [-2; -5; 0; 0; 0; 0; 0; 0];  % Linear cost (adjusted for dimension)
+l = zeros(8, 1);                 % Lower bounds (all variables >= 0)
+u = ones(8, 1);                  % Upper bounds (all variables <= 1)
+
+% Constraint matrix and bounds
+M = M = [
+    0.0105         0   -0.0205         0         0         0         0         0;
+         0    0.0081         0   -0.0144         0         0         0         0;
+         0         0    0.0205         0         0         0    1.0000         0;
+         0         0         0    0.0144         0         0         0    1.0000;
+         0         0         0         0   -0.0105         0         0         0;
+         0         0         0         0         0   -0.0081         0         0;
+         0         0         0         0    0.0205         0   -0.0205         0;
+         0         0         0         0         0    0.0144         0   -0.0144
+];
+                           % Using M as the constraint matrix
+bl = -ones(8, 1);                % Lower constraint bounds (adjust as needed)
+bu = ones(8, 1);                 % Upper constraint bounds (adjust as needed)
+
+% Initial guess
+xinit = 0.5 * ones(8, 1);        % Initial guess (all variables start at 0.5)
+
+% Call the solver
+[x, info] = qpsolver(H, g, l, u, A, bl, bu, xinit);
+
+% Display results
+disp('Optimal solution:');
+disp(x);
+disp('Solver info:');
+disp(info);

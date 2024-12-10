@@ -65,7 +65,7 @@ d = d0 + sigma*dW';
 % Step changes in manipulated variables
 u(2,50:end) = u(2,50)*0.5;
 u(1,200:end) = u(1,200)*1.25;
-% d(1,250:end) = d(1,250:end)+100;
+d(1,250:end) = d(1,250:end)+100;
 
 
 R = [(0.4)^2 0 0 0; 0 (0.5)^2 0 0; 0 0 (0.05)^2 0; 0 0 0 (0.1)^2]*4;     % Covariance for measurement noise
@@ -95,19 +95,14 @@ Gw = eye(4);
 
 %-------------------------------------------------------------------------
 % Construct the matrix for exponential calculation
-M = [-A, G * G';
-     zeros(size(A')), A'];
-
-% Compute the matrix exponential
-Phi = expm(M * dt);
+M = expm([-A G*G' ; zeros(size(A)) A']*dt);
 
 % Extract submatrices
-Phi_11 = Phi(1:size(A,1), 1:size(A,1));
-Phi_12 = Phi(1:size(A,1), size(A,1)+1:end);
-Phi_22 = Phi(size(A,1)+1:end, size(A,1)+1:end);
+phi_12 = M(1:4,5:8);
+phi_22 = M(5:8,5:8);
 
 % Compute process noise covariance matrix Q
-Q2 = Phi_22' * Phi_12;
+Q2 = phi_22' * phi_12;
 %-------------------------------------------------------------------------
 % ZOH Discretization of Linear System
 [Ad, Bd, Gd] = c2dzoh(A, B, G, dt);
