@@ -156,13 +156,16 @@ Gw_aug =  [Gwd, zeros(4,2); zeros(2,4) eye(2,2)];
 
 [x_hat2_dyn, x_phat2_dyn] = kalman_filter_aug_dynamic(t, xdev, udev, ddev, At, rho, R, Q_aug, Ad_aug, Bd_aug, Gd_aug, Gw_aug, C_aug);
 [x_hat2_sta, x_phat2_sta] = kalman_filter_aug_static(t, xdev, udev, ddev, At, rho, R, Q_aug, Ad_aug, Bd_aug, Gd_aug, Gw_aug, C_aug);
+[x_hat2_dyn_pre, x_phat2_dyn_pre, P_pred2_dyn_pre, x_pred2_dyn_pre] = kalman_filter_aug_dynamic_pred(t, xdev, udev, ddev, At, rho, R, Q_aug, Ad_aug, Bd_aug, Gd_aug, Gw_aug, C_aug);
 
 % From deviation variables to 
 xhat2_dyn = x_hat2_dyn(1:4,:) + x0;
 xhat2_sta = x_hat2_sta(1:4,:) + x0;
+xhat2_dyn_pre = x_hat2_dyn_pre(1:4,:) + x0;
 
 yhat2_dyn = mass_to_height(xhat2_dyn(1:4,:),At,rho);
 yhat2_sta = mass_to_height(xhat2_sta(1:4,:),At,rho);
+yhat2_dyn_pre = mass_to_height(xhat2_dyn_pre(1:4,:),At,rho);
 
 figure(2)
 for i = 1:4
@@ -172,12 +175,14 @@ for i = 1:4
     plot(t/60, yhat2_dyn(i,:),'r', 'LineWidth', 1);
     hold on;
     plot(t/60, yhat2_sta(i,:),'g', 'LineWidth', 1);
+    hold on;
+    plot(t/60, yhat2_dyn_pre(i,:),'k', 'LineWidth', 1);
     hold off;
     grid on;
     xlabel('t [min]', 'FontSize', 12);
     ylabel('height [cm]', 'FontSize', 12);
     xlim([0 t(end)/60]);
-    legend('Measured height', 'Dynamic Kalman filter', 'Static Kalman filter', 'Location', 'best');
+    legend('Measured height', 'Dynamic Kalman filter', 'Static Kalman filter', 'Predicting Dynamic Kalman filter', 'Location', 'best');
     title(['Tank ', num2str(i)], 'FontSize', 10);
 end
 sgtitle('Augmented Linear Kalman filter', 'FontSize', 14, 'FontWeight', 'bold');
