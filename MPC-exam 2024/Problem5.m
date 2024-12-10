@@ -1,7 +1,7 @@
 clc, clear, close all
 addpath("Functions");
 
-% Problem 4
+% Problem 5
 % ----------------------------------------------------------
 % Parameters
 % ----------------------------------------------------------
@@ -104,31 +104,31 @@ G_tf_brownian = compute_transfer_functions(A_brownian, B_brownian, C_brownian, D
 [x11_stoch, x12_stoch, x21_stoch, x22_stoch] = MarkovPara(Ad_stoch,Bd_stoch,C_stoch,D,N);
 [x11_brownian, x12_brownian, x21_brownian, x22_brownian] = MarkovPara(Ad_brownian,Bd_brownian,C_brownian,D,N);
 
-figure;
-hold on;
-plot(t/60, x11_det, '-.k', 'LineWidth', 1.5);
-plot(t/60, x12_det, '--c', 'LineWidth', 1.5);
-plot(t/60, x21_det, ':m', 'LineWidth', 1.5);
-plot(t/60, x22_det, '-g', 'LineWidth', 1.5);
-hold off;
-legend('u_1 \rightarrow y_1', 'u_1 \rightarrow y_2', 'u_2 \rightarrow y_1', 'u_2 \rightarrow y_2', ...
-    'Location', 'northwest');
-xlabel('Time [min]', 'FontSize', 12, 'FontWeight', 'bold');
-ylabel('Height [cm]', 'FontSize', 12, 'FontWeight', 'bold'); 
-title('Response of System Outputs to Inputs', 'FontSize', 14, 'FontWeight', 'bold');
-
-figure;
-hold on;
-plot(t/60, x11_stoch, '-.k', 'LineWidth', 1.5);
-plot(t/60, x12_stoch, '--c', 'LineWidth', 1.5);
-plot(t/60, x21_stoch, ':m', 'LineWidth', 1.5);
-plot(t/60, x22_stoch, '-g', 'LineWidth', 1.5);
-hold off;
-legend('u_1 \rightarrow y_1', 'u_1 \rightarrow y_2', 'u_2 \rightarrow y_1', 'u_2 \rightarrow y_2', ...
-    'Location', 'northwest');
-xlabel('Time [min]', 'FontSize', 12, 'FontWeight', 'bold');
-ylabel('Height [cm]', 'FontSize', 12, 'FontWeight', 'bold'); 
-title('Response of System Outputs to Inputs', 'FontSize', 14, 'FontWeight', 'bold');
+% figure;
+% hold on;
+% plot(t/60, x11_det, '-.k', 'LineWidth', 1.5);
+% plot(t/60, x12_det, '--c', 'LineWidth', 1.5);
+% plot(t/60, x21_det, ':m', 'LineWidth', 1.5);
+% plot(t/60, x22_det, '-g', 'LineWidth', 1.5);
+% hold off;
+% legend('u_1 \rightarrow y_1', 'u_1 \rightarrow y_2', 'u_2 \rightarrow y_1', 'u_2 \rightarrow y_2', ...
+%     'Location', 'northwest');
+% xlabel('Time [min]', 'FontSize', 12, 'FontWeight', 'bold');
+% ylabel('Height [cm]', 'FontSize', 12, 'FontWeight', 'bold'); 
+% title('Response of System Outputs to Inputs', 'FontSize', 14, 'FontWeight', 'bold');
+% 
+% figure;
+% hold on;
+% plot(t/60, x11_stoch, '-.k', 'LineWidth', 1.5);
+% plot(t/60, x12_stoch, '--c', 'LineWidth', 1.5);
+% plot(t/60, x21_stoch, ':m', 'LineWidth', 1.5);
+% plot(t/60, x22_stoch, '-g', 'LineWidth', 1.5);
+% hold off;
+% legend('u_1 \rightarrow y_1', 'u_1 \rightarrow y_2', 'u_2 \rightarrow y_1', 'u_2 \rightarrow y_2', ...
+%     'Location', 'northwest');
+% xlabel('Time [min]', 'FontSize', 12, 'FontWeight', 'bold');
+% ylabel('Height [cm]', 'FontSize', 12, 'FontWeight', 'bold'); 
+% title('Response of System Outputs to Inputs', 'FontSize', 14, 'FontWeight', 'bold');
 
 figure;
 hold on;
