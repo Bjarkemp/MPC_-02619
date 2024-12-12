@@ -1,9 +1,9 @@
-function Gamma = generate_Gamma(A, B, C, N)
+function Gamma = generate_Gamma_d(A, E, C, N)
     % GENERATE_GAMMA Computes the Gamma matrix for MPC as shown in the image.
     %
     % Inputs:
     %   A - State matrix
-    %   B - Input matrix
+    %   E - Disturbance matrix
     %   C - Output matrix
     %   N - Prediction horizon
     %
@@ -12,7 +12,7 @@ function Gamma = generate_Gamma(A, B, C, N)
 
     % Dimensions
     n_outputs = size(C, 1);  % Number of outputs
-    n_inputs = size(B, 2);   % Number of inputs
+    n_inputs = size(E, 2);   % Number of inputs
 
     % Initialize Gamma
     Gamma = zeros(N * n_outputs, N * n_inputs);
@@ -21,7 +21,7 @@ function Gamma = generate_Gamma(A, B, C, N)
     for row_block = 1:N
         for col_block = 1:row_block
             % Compute H_i = C * A^(row_block - col_block) * B
-            block = C * A^(row_block - col_block) * B;
+            block = C * A^(row_block - col_block) * E;
             
             % Row and column indices for placing the block
             row_indices = (row_block-1) * n_outputs + (1:n_outputs);

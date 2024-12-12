@@ -31,7 +31,7 @@ tf= 60;                  % [s] End time
 dt = 1;                    % [s] interval between each step
 N = tf/dt;                  % Number of steps 
 t = t0:dt:tf;               % [s] time-vector
-Ph = 5;                     % Prediction horizon
+Ph = 40;                     % Prediction horizon
 m10 = 17612.0123864868;                    % [g] Liquid mass in tank 1 at time t0
 m20 = 29640.6694933624;                    % [g] Liquid mass in tank 2 at time t0
 m30 = 4644.21948249842;                    % [g] Liquid mass in tank 3 at time t0
@@ -83,7 +83,7 @@ S = 0.1 * eye(size(B, 2)); % Weight on control effort
 % Ph is Prediction horizon
 
 % Design MPC
-MPC_sys = UnconstrainedMPCDesign(A, B, C, Q, S, Ph);
+MPC_sys = UnconstrainedMPCDesign(A, B, B, C, Q, S, Ph);
 
 % Kalman filter parameters
 Q_hat = 40 * eye(size(A));      % Process noise covariance (state dimension)

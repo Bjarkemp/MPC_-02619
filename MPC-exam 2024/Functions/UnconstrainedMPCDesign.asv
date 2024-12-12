@@ -47,10 +47,9 @@ function MPC_sys = UnconstrainedMPCDesign(A, B, E, C, Q, S, Ph)
     % Define M_r (linear term related to reference tracking)
     M_r = -Gamma' * Q_z;
 
-    M_d  = Gamma' * Q_z * Gamma_d;
-
+     M_d  = Gamma' * Q_z * Gamma_d;
     M_u1 = zeros(size(M_d,1),size(S,1)); M_u1(1:size(S,1),1:size(S,1)) = -S;
 
     % Return MPC system matrices
-    MPC_sys = struct('phi', phi, 'Gamma', Gamma, 'Hs', Hs, 'H', H, 'M_x0', M_x0, 'M_r', M_r, 'M_d', M_d, 'M_u1', M_u1);
+    MPC_sys = struct('phi', phi, 'Gamma', Gamma, 'Hs', Hs, 'H', H, 'M_x0', M_x0, 'M_r', M_r, );
 end
