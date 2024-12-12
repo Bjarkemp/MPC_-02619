@@ -60,16 +60,16 @@ seed = 10;
 [W,t,dW] = ScalarStdWienerProcess(tf,N,Ns,seed);
 sigma = [2^2 0; 0 2^2];                             % Covariance for disturbances in F3 and F4
 % d = d0 + sigma*dW'; 
-d = [100*ones(1,length(t));150*ones(1,length(t))];
+d = [130*ones(1,length(t));190*ones(1,length(t))];
 
 % Step changes in manipulated variables
 u(2,1:end) = u(2,1)*0.5;
-u(1,1:end) = u(1,1)*1.25;
+u(1,1:end) = u(1,1)*1.5;
 % d(1,250:end) = d(1,250:end)+100;
 
 
-R = [(0.4)^2 0 0 0; 0 (0.5)^2 0 0; 0 0 (0.05)^2 0; 0 0 0 (0.1)^2]*0.000004;     % Covariance for measurement noise
-Q = [(40)^2 0 0 0; 0 (50)^2 0 0; 0 0 (5)^2 0; 0 0 0 (10)^2]*0.0000004;           % Covariance for process noise
+R = [(0.4)^2 0 0 0; 0 (0.5)^2 0 0; 0 0 (0.05)^2 0; 0 0 0 (0.1)^2]*4;     % Covariance for measurement noise
+Q = [(40)^2 0 0 0; 0 (50)^2 0 0; 0 0 (5)^2 0; 0 0 0 (10)^2]*4;           % Covariance for process noise
 
 [T, X, D, U, x_sample] = discrete_fourtankProcess_plus_noise(x0, t, u, d, p, Q);
 
@@ -157,7 +157,7 @@ Gw_aug =  [Gwd, zeros(4,2); zeros(2,4) eye(2,2)];
 [x_hat2_dyn, x_phat2_dyn] = kalman_filter_aug_dynamic(t, xdev, udev, ddev, At, rho, R, Q_aug, Ad_aug, Bd_aug, Ed_aug, Gw_aug, C_aug);
 [x_hat2_sta, x_phat2_sta] = kalman_filter_aug_static(t, xdev, udev, ddev, At, rho, R, Q_aug, Ad_aug, Bd_aug, Ed_aug, Gw_aug, C_aug);
 
-[x_hat2_dyn_pre, x_phat2_dyn_pre] = kalman_filter_aug_dynamic_pred(t(1), xdev(:,1), udev(:,1), ddev(:,1), At, rho, R, Q_aug, Ad_aug, Bd_aug, Ed_aug, Gw_aug, C_aug,100);
+[x_hat2_dyn_pre, x_phat2_dyn_pre] = kalman_filter_aug_dynamic_pred(t(1), xdev(:,1), udev(:,1), ddev(:,1), At, rho, R, Q_aug, Ad_aug, Bd_aug, Ed_aug, Gw_aug, C_aug,300);
 
 % From deviation variables to 
 xhat2_dyn = x_hat2_dyn(1:4,:) + x0;
@@ -177,7 +177,7 @@ for i = 1:4
     hold on;
     plot(t/60, yhat2_sta(i,:),'g', 'LineWidth', 1);
     hold on;
-    plot(t(1:101)/60, yhat2_dyn_pre(i,:),'k', 'LineWidth', 1);
+    plot(t(1:301)/60, yhat2_dyn_pre(i,:),'k', 'LineWidth', 1);
     hold off;
     grid on;
     xlabel('t [min]', 'FontSize', 12);

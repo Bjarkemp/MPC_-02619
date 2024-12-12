@@ -26,14 +26,14 @@ for k = 1:length(t)
     Re_k = C * P * C' + R;               % Combine predicted error covariance and measurement noise
 
     % Kalman gain calculation
-    K = P * C' / Re_k;                   % Optimal Kalman gain
+    K = P * C' * inv(Re_k);                   % Optimal Kalman gain
 
     % Update step: update state estimate using the Kalman gain
     xhat_k_k = xhat_k_k1 + K * ek;       % Correct the prior estimate
     x_hat(:, k) = xhat_k_k;              % Store the corrected state estimate
 
     % One-step prediction: predict next state based on system dynamics
-    x_phat(:, k) = Ad * xhat_k_k + Bd * udev(:, k) + Gd * ddev(:, k); % Predicted next state
+    x_phat(:, k) = Ad * xhat_k_k + Bd * udev(:, k);% + Gd * ddev(:, k); % Predicted next state
     xhat_k_k1 = x_phat(:, k);           % Prepare the next iteration with predicted state
 end
 

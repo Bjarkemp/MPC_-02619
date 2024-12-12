@@ -22,7 +22,6 @@ function [y, u] = MPC_Sim_Unconstrained(sys, MPC_sys, Q_aug, Rsp, t_f, Ts, input
     x_hat = zeros(size(A, 1), num_steps + 1); % State estimate
     y = zeros(size(C, 1), num_steps);         % Output trajectory
     u = zeros(size(B, 2), num_steps);         % Control inputs
-    
 
     % Loop over simulation
     for i = 1:60%num_steps
@@ -36,7 +35,7 @@ function [y, u] = MPC_Sim_Unconstrained(sys, MPC_sys, Q_aug, Rsp, t_f, Ts, input
         end
 %--------------------------------------------------------------------------
         [x_hat2_dyn_pre, x_phat2_dyn_pre] = kalman_filter_aug_dynamic_pred(t(i), x0, u(:,i), d_k(:,i), At, rho, R, Q_aug, Ad_aug, Bd_aug, Gd_aug, Gw_aug, C_aug,Ph);
-        x_hat = x_phat2_dyn_pre(1:4,:)
+        x_hat = x_phat2_dyn_pre(1:4,:);
 %--------------------------------------------------------------------------
         % Solve unconstrained MPC problem
         g = MPC_sys.M_x0 * x_hat(:, i) + MPC_sys.M_r * R_current;

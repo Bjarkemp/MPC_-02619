@@ -24,7 +24,7 @@ for k = 1:length(t)
     Re_k = C_aug * P * C_aug' + R;      % Combine error covariance and measurement noise
 
     % Kalman gain
-    K = P * C_aug' / Re_k;              % Compute steady-state Kalman gain
+    K = P * C_aug' * inv(Re_k);              % Compute steady-state Kalman gain
 
     % Current measurement
     yk = mass_to_height(xdev(:, k), At, rho) + v(:, k); % True measurement with noise
@@ -40,7 +40,7 @@ for k = 1:length(t)
     x_hat = [x_hat, xhat_k_k];          % Store the corrected state estimate
 
     % Prediction step: predict the next state
-    x_phat(:, k) = Ad_aug * xhat_k_k + Bd_aug * udev(:, k) + Gd_aug * ddev(:, k); % Predict the next state
+    x_phat(:, k) = Ad_aug * xhat_k_k + Bd_aug * udev(:, k);% + Gd_aug * ddev(:, k); % Predict the next state
     xhat_k_k1 = x_phat(:, k);           % Prepare for the next iteration
 end
 end
