@@ -31,11 +31,8 @@ tf= 60;                  % [s] End time
 dt = 1;                    % [s] interval between each step
 N = tf/dt;                  % Number of steps 
 t = t0:dt:tf;               % [s] time-vector
-<<<<<<< HEAD
-Ph = 100;                     % Prediction horizon
-=======
 Ph = 40;                     % Prediction horizon
->>>>>>> 149bc0d5cbfaff67e0c1923f6a0532a757769d6d
+
 m10 = 17612.0123864868;                    % [g] Liquid mass in tank 1 at time t0
 m20 = 29640.6694933624;                    % [g] Liquid mass in tank 2 at time t0
 m30 = 4644.21948249842;                    % [g] Liquid mass in tank 3 at time t0
@@ -84,9 +81,9 @@ C = sys.C;
 %ZOH Discretization of Linear System
 %Stochastic Brownian
 [Ad,Bd,Ed]=c2dzoh(A,B,E,dt);
-% D = zeros(2,4);
+D = zeros(2,4);
 % sys = ss(Ad,[Bd,Gd],C(1:2,:),D);
-% sys = ss(Ad,Bd,C(1:2,:),D(:,1:2));
+sys = ss(Ad,Bd,C(1:2,:),D(:,1:2));
 
 % %Markov parameters
 % [x11_brownian, x12_brownian, x21_brownian, x22_brownian] = MarkovPara(Ad,Bd,C,D,N);
@@ -101,11 +98,8 @@ S = 0.1 * eye(size(B, 2)); % Weight on control effort
 % Ph is Prediction horizon
 
 % Design MPC
-<<<<<<< HEAD
-MPC_sys = UnconstrainedMPCDesign(A, B, C, Qz, S, Ph);
-=======
-MPC_sys = UnconstrainedMPCDesign(A, B, B, C, Q, S, Ph);
->>>>>>> 149bc0d5cbfaff67e0c1923f6a0532a757769d6d
+MPC_sys = UnconstrainedMPCDesign(A, B, E, C, Qz, S, Ph);
+
 
 % Kalman filter parameters
 R = [(0.4)^2 0 0 0; 0 (0.5)^2 0 0; 0 0 (0.05)^2 0; 0 0 0 (0.1)^2]*0.000004;     % Covariance for measurement noise
@@ -137,9 +131,17 @@ Rd = 5;
 Lr = chol(R, 'lower');                  % Decompose R into lower triangular matrix
 v_k = Lr * (randn(4,length(t)));           % Generate measurement noise with covariance R
 
-Rsp = [20*ones(1,tf/dt);25*ones(1,tf/dt)];
-inputs = {x0, u0, Rsp, d, v_k};
+R1 = [0 ; 0];
+R2 = [10 ; 10];
+R3 = [20 ;-10];
 
+Rsp=zeros(2*(Ph+tf/dt),1);
+Rsp(1:2*(tf/dt/3),1)=kron(ones(tf/dt/3,1),R1);
+Rsp(2*(tf/dt/3)+1:2*(2*tf/dt/3),1)=kron(ones(tf/dt/3,1),R2);
+Rsp(2*(2*tf/dt/3)+1:2*(Ph+tf/dt),1)=kron(ones(Ph+tf/dt/3,1),R3);
+
+% Rsp = [20*ones(1,tf/dt);25*ones(1,tf/dt)];
+inputs = {x0, u0, Rsp, d, v_k};
 
 % Simulation
 [y, u] = MPC_Sim_Unconstrained(sys, MPC_sys, Q_aug, Rsp, tf, dt, inputs, Ph,t,At,rho,Ad_aug, Bd_aug, Ed_aug, Gw_aug, C_aug, R);
