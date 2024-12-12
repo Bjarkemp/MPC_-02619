@@ -59,17 +59,17 @@ Ns = length(d0); % Number of realizations
 seed = 10;
 [W,t,dW] = ScalarStdWienerProcess(tf,N,Ns,seed);
 sigma = [2^2 0; 0 2^2];                             % Covariance for disturbances in F3 and F4
-d = d0 + sigma*dW'; 
-
+% d = d0 + sigma*dW'; 
+d = [100*ones(1,length(t));150*ones(1,length(t))];
 
 % Step changes in manipulated variables
-% u(2,50:end) = u(2,50)*0.5;
-% u(1,200:end) = u(1,200)*1.25;
+u(2,1:end) = u(2,1)*0.5;
+u(1,1:end) = u(1,1)*1.25;
 % d(1,250:end) = d(1,250:end)+100;
 
 
-R = [(0.4)^2 0 0 0; 0 (0.5)^2 0 0; 0 0 (0.05)^2 0; 0 0 0 (0.1)^2]*4;     % Covariance for measurement noise
-Q = [(40)^2 0 0 0; 0 (50)^2 0 0; 0 0 (5)^2 0; 0 0 0 (10)^2]*4;           % Covariance for process noise
+R = [(0.4)^2 0 0 0; 0 (0.5)^2 0 0; 0 0 (0.05)^2 0; 0 0 0 (0.1)^2]*0.000004;     % Covariance for measurement noise
+Q = [(40)^2 0 0 0; 0 (50)^2 0 0; 0 0 (5)^2 0; 0 0 0 (10)^2]*0.0000004;           % Covariance for process noise
 
 [T, X, D, U, x_sample] = discrete_fourtankProcess_plus_noise(x0, t, u, d, p, Q);
 
@@ -90,12 +90,12 @@ A=[-1/Tl(1) 0 1/Tl(3) 0;0 -1/Tl(2) 0 1/Tl(4);0 0 -1/Tl(3) 0;0 0 0 -1/Tl(4)];
 B=[rho*gamma1 0;0 rho*gamma2; 0 rho*(1-gamma2); rho*(1-gamma1) 0];
 C=diag(1./(rho*At));
 Cz=C(1:2,:);
-G = [0 0; 0 0; rho 0; 0 rho];
+E = [0 0; 0 0; rho 0; 0 rho];
 Gw = eye(4);
 
 %-------------------------------------------------------------------------
 % Construct the matrix for exponential calculation
-M = expm([-A G*G' ; zeros(size(A)) A']*dt);
+M = expm([-A E*E' ; zeros(size(A)) A']*dt);
 
 % Extract submatrices
 phi_12 = M(1:4,5:8);
@@ -105,12 +105,12 @@ phi_22 = M(5:8,5:8);
 Q2 = phi_22' * phi_12;
 %-------------------------------------------------------------------------
 % ZOH Discretization of Linear System
-[Ad, Bd, Gd] = c2dzoh(A, B, G, dt);
+[Ad, Bd, Ed] = c2dzoh(A, B, E, dt);
 
 
 % Kalman filter
-[x_hat1_dyn, x_phat1_dyn] = kalman_filter_dynamic(t, xdev, udev, ddev, At, rho, R, Q, Ad, Bd, Gd, C);
-[x_hat1_sta, x_phat1_sta] = kalman_filter_static(t, xdev, udev, ddev, At, rho, R, Q, Ad, Bd, Gd, C);
+[x_hat1_dyn, x_phat1_dyn] = kalman_filter_dynamic(t, xdev, udev, ddev, At, rho, R, Q, Ad, Bd, Ed, C);
+[x_hat1_sta, x_phat1_sta] = kalman_filter_static(t, xdev, udev, ddev, At, rho, R, Q, Ad, Bd, Ed, C);
 
 % From deviation variables to 
 x = xdev + x0;
@@ -142,26 +142,27 @@ sgtitle('Not-Augmented Linear Kalman filter', 'FontSize', 14, 'FontWeight', 'bol
 %% Augmented Linear Kalman filter 
 
 % Diskretisering af det kontinuerte system
-[Ad, Bd, Gd] = c2dzoh(A, B, G, dt);
+[Ad, Bd, Ed] = c2dzoh(A, B, E, dt);
 % ZOH Discretization of Linear System
 [Ad, Bd, Gwd] = c2dzoh(A, B, Gw, dt);
 
 % Augmentering efter diskretisering
-Ad_aug = [Ad, Gd; zeros(size(Gd, 2), size(Ad, 1)), eye(size(Gd, 2))];
-Bd_aug = [Bd; zeros(size(Gd, 2), size(Bd, 2))];
-Gd_aug = [Gd; zeros(size(Gd, 2), size(Gd, 2))];
-C_aug = [C, zeros(size(C, 1), size(Gd, 2))];
-Q_aug = [Q, zeros(size(Q, 1), size(Gd, 2)); zeros(size(Gd, 2), size(Q, 2)), eye(size(Gd, 2))];
+Ad_aug = [Ad, Ed; zeros(size(Ed, 2), size(Ad, 1)), eye(size(Ed, 2))];
+Bd_aug = [Bd; zeros(size(Ed, 2), size(Bd, 2))];
+Ed_aug = [Ed; zeros(size(Ed, 2), size(Ed, 2))];
+C_aug = [C, zeros(size(C, 1), size(Ed, 2))];
+Q_aug = [Q, zeros(size(Q, 1), size(Ed, 2)); zeros(size(Ed, 2), size(Q, 2)), eye(size(Ed, 2))];
 Gw_aug =  [Gwd, zeros(4,2); zeros(2,4) eye(2,2)];
 
-[x_hat2_dyn, x_phat2_dyn] = kalman_filter_aug_dynamic(t, xdev, udev, ddev, At, rho, R, Q_aug, Ad_aug, Bd_aug, Gd_aug, Gw_aug, C_aug);
-[x_hat2_sta, x_phat2_sta] = kalman_filter_aug_static(t, xdev, udev, ddev, At, rho, R, Q_aug, Ad_aug, Bd_aug, Gd_aug, Gw_aug, C_aug);
-[x_hat2_dyn_pre, x_phat2_dyn_pre] = kalman_filter_aug_dynamic_pred(t, xdev, udev, ddev, At, rho, R, Q_aug, Ad_aug, Bd_aug, Gd_aug, Gw_aug, C_aug);
+[x_hat2_dyn, x_phat2_dyn] = kalman_filter_aug_dynamic(t, xdev, udev, ddev, At, rho, R, Q_aug, Ad_aug, Bd_aug, Ed_aug, Gw_aug, C_aug);
+[x_hat2_sta, x_phat2_sta] = kalman_filter_aug_static(t, xdev, udev, ddev, At, rho, R, Q_aug, Ad_aug, Bd_aug, Ed_aug, Gw_aug, C_aug);
+
+[x_hat2_dyn_pre, x_phat2_dyn_pre] = kalman_filter_aug_dynamic_pred(t(1), xdev(:,1), udev(:,1), ddev(:,1), At, rho, R, Q_aug, Ad_aug, Bd_aug, Ed_aug, Gw_aug, C_aug,100);
 
 % From deviation variables to 
 xhat2_dyn = x_hat2_dyn(1:4,:) + x0;
 xhat2_sta = x_hat2_sta(1:4,:) + x0;
-xhat2_dyn_pre = x_hat2_dyn_pre(1:4,:) + x0;
+xhat2_dyn_pre = x_phat2_dyn_pre(1:4,:) + x0;
 
 yhat2_dyn = mass_to_height(xhat2_dyn(1:4,:),At,rho);
 yhat2_sta = mass_to_height(xhat2_sta(1:4,:),At,rho);
@@ -176,7 +177,7 @@ for i = 1:4
     hold on;
     plot(t/60, yhat2_sta(i,:),'g', 'LineWidth', 1);
     hold on;
-    plot(t/60, yhat2_dyn_pre(i,:),'k', 'LineWidth', 1);
+    plot(t(1:101)/60, yhat2_dyn_pre(i,:),'k', 'LineWidth', 1);
     hold off;
     grid on;
     xlabel('t [min]', 'FontSize', 12);

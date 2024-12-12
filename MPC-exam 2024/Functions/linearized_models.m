@@ -1,4 +1,4 @@
-function [A, B, C, G, Gw] = linearized_models(xs, At, at, rho, gamma1, gamma2, g, noise_type, d0, sigma, R)
+function [A, B, C, G, Gw] = linearized_models(xs, At, at, rho, gamma1, gamma2, g, noise_type, d0, sigma)
     % LINEARIZED_MODELS computes linearized continuous-time models for different noise types.
     %
     % Inputs:

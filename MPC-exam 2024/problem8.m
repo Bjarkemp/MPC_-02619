@@ -31,7 +31,7 @@ tf= 60;                  % [s] End time
 dt = 1;                    % [s] interval between each step
 N = tf/dt;                  % Number of steps 
 t = t0:dt:tf;               % [s] time-vector
-Ph = 5;                     % Prediction horizon
+Ph = 100;                     % Prediction horizon
 m10 = 17612.0123864868;                    % [g] Liquid mass in tank 1 at time t0
 m20 = 29640.6694933624;                    % [g] Liquid mass in tank 2 at time t0
 m30 = 4644.21948249842;                    % [g] Liquid mass in tank 3 at time t0
@@ -55,21 +55,34 @@ xs = fsolve(@FourTankSystemWrap,x0,[],u0,d0,p);
 ys = sensor_wo_noise(xs,at,rho);
 zs = sensor_wo_noise(xs,at,rho);
 
-%Stochastic Brownian
-R = [1^2 0 0 0; 0 1^2 0 0; 0 0 0.5^2 0; 0 0 0 0.5^2];     % Covariance for measurement noise
-sigma = [2^2 0; 0 2^2]; 
-[A, B, C, G, Gw] = linearized_models(xs, At, at, rho, gamma1, gamma2, g, ...
-                                                                                'brownian', d0, sigma, R);
-%ZOH Discretization of Linear System
-%Stochastic Brownian
-[Ad,Bd,Gd]=c2dzoh(A,B,G,dt);
-D = zeros(2,4);
-% sys = ss(Ad,[Bd,Gd],C(1:2,:),D);
-sys = ss(Ad,Bd,C(1:2,:),D(:,1:2));
+% %Stochastic Brownian
+% sigma = [2^2 0; 0 2^2]; 
+% [A, B, C, E, Gw] = linearized_models(xs, At, at, rho, gamma1, gamma2, g, ...
+                                                                                % 'brownian', d0, sigma);
+
+% --------------------------------------------------------------
+% Linearization
+% --------------------------------------------------------------
+ys = mass_to_height(xs,At,rho);
+hs = ys;
+Tl = (At./at).*sqrt(2*hs/g);
+sys.A=[-1/Tl(1) 0 1/Tl(3) 0;0 -1/Tl(2) 0 1/Tl(4);0 0 -1/Tl(3) 0;0 0 0 -1/Tl(4)];
+sys.B=[rho*gamma1 0;0 rho*gamma2; 0 rho*(1-gamma2); rho*(1-gamma1) 0];
+sys.C=diag(1./(rho*At));
+Cz=sys.C(1:2,:);
+E = [0 0; 0 0; rho 0; 0 rho];
+Gw = eye(4);
 
 A = sys.A;
 B = sys.B;
 C = sys.C;
+
+%ZOH Discretization of Linear System
+%Stochastic Brownian
+[Ad,Bd,Ed]=c2dzoh(A,B,E,dt);
+% D = zeros(2,4);
+% sys = ss(Ad,[Bd,Gd],C(1:2,:),D);
+% sys = ss(Ad,Bd,C(1:2,:),D(:,1:2));
 
 % %Markov parameters
 % [x11_brownian, x12_brownian, x21_brownian, x22_brownian] = MarkovPara(Ad,Bd,C,D,N);
@@ -79,27 +92,59 @@ C = sys.C;
 % Gamma = generate_Gamma(A, B, C, Ph);
 
 % Define MPC parameters
-Q = 100 * eye(size(C, 1));  % Weight on output tracking
+Qz = 100 * eye(size(C, 1));  % Weight on output tracking
 S = 0.1 * eye(size(B, 2)); % Weight on control effort
 % Ph is Prediction horizon
 
 % Design MPC
-MPC_sys = UnconstrainedMPCDesign(A, B, C, Q, S, Ph);
+MPC_sys = UnconstrainedMPCDesign(A, B, C, Qz, S, Ph);
 
 % Kalman filter parameters
-Q_hat = 40 * eye(size(A));      % Process noise covariance (state dimension)
-R_hat = 0.5 * eye(size(C, 1));  % Measurement noise covariance (output dimension)
+R = [(0.4)^2 0 0 0; 0 (0.5)^2 0 0; 0 0 (0.05)^2 0; 0 0 0 (0.1)^2]*0.000004;     % Covariance for measurement noise
+Q = [(40)^2 0 0 0; 0 (50)^2 0 0; 0 0 (5)^2 0; 0 0 0 (10)^2]*0.0000004;           % Covariance for process noise
+
+
+% ZOH Discretization of Linear System
+[Ad, Bd, Gwd] = c2dzoh(A, B, Gw, dt);
+
+% Augmentering efter diskretisering
+Ad_aug = [Ad, Ed; zeros(size(Ed, 2), size(Ad, 1)), eye(size(Ed, 2))];
+Bd_aug = [Bd; zeros(size(Ed, 2), size(Bd, 2))];
+Ed_aug = [Ed; zeros(size(Ed, 2), size(Ed, 2))];
+C_aug = [C, zeros(size(C, 1), size(Ed, 2))];
+Q_aug = [Q, zeros(size(Q, 1), size(Ed, 2)); zeros(size(Ed, 2), size(Q, 2)), eye(size(Ed, 2))];
+Gw_aug =  [Gwd, zeros(4,2); zeros(2,4) eye(2,2)];
 
 % Generate noisy measurements
 y_meas = C * x0 + 0.1 * randn(size(C, 1), tf / dt); % Noisy measurement example
 
-% Pack inputs
-sigma_R = R_hat; % Use the measurement noise covariance here
+% % Pack inputs
+% sigma_R = R_hat; % Use the measurement noise covariance here
 u0 = zeros(size(B, 2), 1); % Initial control input
 Rd = 5;
-d_k = mvnrnd(zeros(tf/dt,size(C,1)),eye(2)*Rd)';
-v_k = mvnrnd(zeros(tf/dt,size(C,1)),eye(2)*sigma_R)';
-inputs = {x0, u0, R, d_k, v_k};
+% d_k = mvnrnd(zeros(tf/dt,size(C,1)),eye(2)*Rd)';
+% v_k = mvnrnd(zeros(tf/dt,size(C,1)),eye(2)*sigma_R)';
+
+% Cholesky decomposition of measurement noise covariance R
+Lr = chol(R, 'lower');                  % Decompose R into lower triangular matrix
+v_k = Lr * (randn(4,length(t)));           % Generate measurement noise with covariance R
+
+Rsp = [20*ones(1,tf/dt);25*ones(1,tf/dt)];
+inputs = {x0, u0, Rsp, d, v_k};
+
 
 % Simulation
-[y, u] = MPC_Sim_Unconstrained(sys, MPC_sys, Q_hat, R_hat, tf, dt, inputs, Ph);
+[y, u] = MPC_Sim_Unconstrained(sys, MPC_sys, Q_aug, Rsp, tf, dt, inputs, Ph,t,At,rho,Ad_aug, Bd_aug, Ed_aug, Gw_aug, C_aug, R);
+
+figure(1)
+for i = 1:4
+    subplot(2,2,i)
+    plot(t(1:60)/60, y(i,:),'b', 'LineWidth', 2); 
+    hold off;
+    grid on;
+    ylabel('height [cm]', 'FontSize', 12);
+    xlim([0 t(end)/60]);
+    legend('Measured height', 'Dynamic Kalman filter', 'Static Kalman filter', 'Location', 'best');
+    title(['Tank ', num2str(i)], 'FontSize', 10);
+end
+sgtitle('Not-Augmented Linear Kalman filter', 'FontSize', 14, 'FontWeight', 'bold');
