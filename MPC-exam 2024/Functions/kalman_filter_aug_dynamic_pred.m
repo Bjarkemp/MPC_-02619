@@ -1,4 +1,4 @@
-function [x_hat, x_phat, P_pred, x_pred] = kalman_filter_aug_dynamic_pred(t, xdev, udev, ddev, At, rho, R, Q_aug, Ad_aug, Bd_aug, Gd_aug, Gw_aug, C_aug)
+function [x_hat, x_phat] = kalman_filter_aug_dynamic_pred(t, xdev, udev, ddev, At, rho, R, Q_aug, Ad_aug, Bd_aug, Gd_aug, Gw_aug, C_aug)
 % kalman_filter_aug_dynamic_pred: Implements an augmented dynamic Kalman filter with j-step prediction.
 % This function also stores predicted states and covariances for j-step prediction.
 
@@ -42,22 +42,23 @@ for k = 1:length(t)
 
     % One-step prediction: predict the next state and error covariance
     x_phat(:, k) = Ad_aug * xhat_k_k + Bd_aug * udev(:, k) + Gd_aug * ddev(:, k); % Predict the next state
-    P_k_k1 = Ad_aug * P_k_k * Ad_aug' + Gw_aug * Q_aug * Gw_aug'; % Predict the next error covariance
-    xhat_k_k1 = x_phat(:, k);           % Prepare for the next iteration
+    
 
     % j-step prediction
-    x_j = x_phat(:, k);                 % Start j-step prediction from the current predicted state
+
     P_j = P_k_k1;                       % Start with the current predicted covariance
     for j = 1:100
         % Predict the next state j-steps ahead
-        x_j = Ad_aug * x_j + Bd_aug * udev(:, k) + Gd_aug * ddev(:, k);
+        x_phat(:, k+j) = Ad_aug * x_phat(:, k+j-1) + Bd_aug * udev(:, k) + Gd_aug * ddev(:, k);
         % Predict the corresponding covariance
         P_j = Ad_aug * P_j * Ad_aug' + Gw_aug * Q_aug * Gw_aug';
-
-        % Store j-step prediction results
-        x_pred{k, j} = x_j;             % Store predicted states
         P_pred{k, j} = P_j;             % Store predicted covariances
     end
+
+    
+    xhat_k_k1 = x_phat(:, k);           % Prepare for the next iteration
+    % P_k_k1 = Ad_aug * P_k_k * Ad_aug' + Gw_aug * Q_aug * Gw_aug'; % Predict the next error covariance
+    P_k_k1 = P_pred{k, end};
 end
 
 end

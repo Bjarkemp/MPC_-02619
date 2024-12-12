@@ -21,6 +21,7 @@ function [y, u] = MPC_Sim_Unconstrained(sys, MPC_sys, Q_hat, R_hat, t_f, Ts, inp
     x_hat = zeros(size(A, 1), num_steps + 1); % State estimate
     y = zeros(size(C, 1), num_steps);         % Output trajectory
     u = zeros(size(B, 2), num_steps);         % Control inputs
+    
 
     % Loop over simulation
     for i = 1:num_steps
@@ -42,7 +43,7 @@ function [y, u] = MPC_Sim_Unconstrained(sys, MPC_sys, Q_hat, R_hat, t_f, Ts, inp
 
         % State and output updates
         x(:, i+1) = A * x(:, i) + B * u(:, i) + E * d_k(:, i); % State update
-        y(:, i) = C * x(:, i) + v_k(:, i);                    % Output update
+        y(:, i) = C * x(:, i) + v_k(:, i);                     % Output update
 
         % Kalman filter: Measurement update
         x_hat(:, i) = x_hat(:, i) + L * (y(:, i) - C * x_hat(:, i));
