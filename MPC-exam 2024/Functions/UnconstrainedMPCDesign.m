@@ -1,8 +1,8 @@
-function MPC_sys = UnconstrainedMPCDesign(A, B, E, C, Q, S, Ph)
+function MPC_sys = UnconstrainedMPCDesign(A, B, C, Q, S, Ph)
     % UNCONSTRAINEDMPCDESIGN designs an Unconstrained MPC for a discrete-time system.
     %
     % Inputs:
-    %   A, B, E, and C - Discrete-time state-space system (struct with A, B, C matrices)
+    %   A, B, and C - Discrete-time state-space system (struct with A, B, C matrices)
     %   Q   - State tracking weight matrix
     %   S   - Input weight matrix
     %   Ph   - Prediction horizon
@@ -12,9 +12,7 @@ function MPC_sys = UnconstrainedMPCDesign(A, B, E, C, Q, S, Ph)
 
     % Generate prediction matrices (phi and Gamma)
     phi = generate_phi(A, C, Ph);      % State-to-output mapping
-    phi_w = generate_phi_w(A, C, E, Ph);      % State-to-output mapping
     Gamma = generate_Gamma(A, B, C, Ph); % Input-to-output mapping
-    Gamma_d = generate_Gamma_d(A, E, C, Ph); % disturbance-to-output mapping
 
     % Define Q_z (weight on predicted outputs)
     Q_z = kron(eye(Ph), Q);  % Block diagonal weight matrix
@@ -47,10 +45,6 @@ function MPC_sys = UnconstrainedMPCDesign(A, B, E, C, Q, S, Ph)
     % Define M_r (linear term related to reference tracking)
     M_r = -Gamma' * Q_z;
 
-    M_d  = Gamma' * Q_z * Gamma_d;
-
-    M_u1 = zeros(size(M_d,1),size(S,1)); M_u1(1:size(S,1),1:size(S,1)) = -S;
-
     % Return MPC system matrices
-    MPC_sys = struct('phi', phi, 'Gamma', Gamma, 'Hs', Hs, 'H', H, 'M_x0', M_x0, 'M_r', M_r, 'M_d', M_d, 'M_u1', M_u1);
+    MPC_sys = struct('phi', phi, 'Gamma', Gamma, 'H', H, 'M_x0', M_x0, 'M_r', M_r);
 end

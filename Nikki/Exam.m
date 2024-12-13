@@ -1162,7 +1162,7 @@ for i = 1:t_f/Ts
     if i == 1 % ONLY FIRST ITERATION
         if type == 1 % UNCONSTRAINED
             u_mpc = Uncon_MPC(MPC_sys,x_hat(1:4,i),R(1:2*N,1),u(:,i));
-            u_mpc_nl = Uncon_MPC(MPC_sys,x_hat_nl(1:4,i),R(1:2*N,1),u_nl(:,i));
+            u_mpc_nl = Uncon_MPC(MPC_sys,x_hat_nl(1:4,i),R(1:2*N,1),u_nl(:,i));MPC_sys
         elseif type ==2 % INPUT CONSTRAINED
             u_mpc = U_con_MPC(MPC_sys,x_hat(1:4,i),R(1:2*N,1),u(:,i),cons);
             u_mpc_nl = U_con_MPC(MPC_sys,x_hat_nl(1:4,i),R(1:2*N,1),u_nl(:,i),cons);
