@@ -84,16 +84,24 @@ C = sys.C;
 
 % Define MPC parameters
 Qz = 1000 * eye(size(C, 1));  % Weight on output tracking
-S = 0.01 * eye(size(B, 2));  % Weight on control effort
+S = 100 * eye(size(B, 2)); % Weight on control effort
+% Ph is Prediction horizon
 
 % Design MPC
 MPC_sys = UnconstrainedMPCDesign(A, B, C, Qz, S, Ph);
 
-h_sp = [50; 75];
+% Generate noisy measurements
+y_meas = C * x0 + 0.1 * randn(size(C, 1), tf / dt); % Noisy measurement example
+
+h_sp = [y0(1); y0(2)];
 hdev_sp = h_sp - y0(1:2);
 
 % Rsp = 100*ones(2*Ph,1);
-Rsp = [hdev_sp(1)*ones(1, Ph); hdev_sp(2)*ones(1, Ph)];  % To referencer for Tank 1 og Tank 2
+Rsp = [hdev_sp(1)*ones(1, Ph); hdev_sp(1)*ones(1, Ph)];  % To referencer for Tank 1 og Tank 2
+
+% % Tilføj sætpunktændring for Tank 1 halvvejs i prædiktionshorisonten
+% change_index = round(Ph / 2); % Indeks for ændring (halvvejs)
+% Rsp(1, change_index:end) = 60; % Ændr sætpunktet for Tank 1 til 60
 
 % Ekstraher den relevante del af reference
 ref_traj = reshape(Rsp(:, 1:min(1+Ph-1, end)), [], 1);
@@ -103,7 +111,7 @@ ref_traj = reshape(Rsp(:, 1:min(1+Ph-1, end)), [], 1);
 Ns = length(d0); % Number of realizations
 seed = 10;
 [W,t,dW] = ScalarStdWienerProcess(tf,N,Ns,seed);
-sigma = [2^2 0; 0 2^2];                             % Covariance for disturbances in F3 and F4
+sigma = [2^2 0; 0 0.0002^2];                             % Covariance for disturbances in F3 and F4
 d_k = d0 + sigma*dW';
 
 
@@ -113,7 +121,7 @@ inputs = {x0, u0, Rsp, d_k};
 % [y, u] = MPC_Sim_Unconstrained(sys, MPC_sys, Q_aug, R, tf, dt, inputs, u0,t,At,rho, Ad_aug, Bd_aug, Ed_aug, Gw_aug, C_aug, Ph);
 
 
-% Deviation variables
+
 xdev = zeros(4,1);
 udev(:,1) = zeros(2,1);
 ddev = d_k - d(:,1);
@@ -121,13 +129,11 @@ ddev = d_k - d(:,1);
 
 for i = 1:length(t)
 
-    % Kalman filter
 %--------------------------------------------------------------------------
 [x_hat, x_phat] = kalman_filter_aug_dynamic_pred(t(i), xdev(:,i), udev(:,i), ddev(:,i), At, rho, R, Q_aug, Ad_aug, Bd_aug, Ed_aug, Gw_aug, C_aug, Ph);
 %--------------------------------------------------------------------------
 
 xdev(:,i+1) = x_phat(1:4,1);
-
 
 for j = 1:Ph
 
