@@ -27,15 +27,15 @@ At = p(5:8);                % [cm2] Cross sectional area
 % Simulation scenario
 % -----------------------------------------------------------
 t0 = 0.0;                   % [s] Initial time
-tf= 60*1;                  % [s] End time
-dt = 1;                    % [s] interval between each step
+tf= 60*10;                  % [s] End time
+dt = 2;                    % [s] interval between each step
 N = tf/dt;                  % Number of steps 
 t = t0:dt:tf;               % [s] time-vector
-Ph = 20;                     % Prediction horizon
-m10 = 17612.0123864868;                    % [g] Liquid mass in tank 1 at time t0
-m20 = 29640.6694933624;                    % [g] Liquid mass in tank 2 at time t0
-m30 = 4644.21948249842;                    % [g] Liquid mass in tank 3 at time t0
-m40 = 9378.49308238599;                    % [g] Liquid mass in tank 4 at time t0
+Ph = 5;                     % Prediction horizon
+m10 = 0;                    % [g] Liquid mass in tank 1 at time t0
+m20 = 0;                    % [g] Liquid mass in tank 2 at time t0
+m30 = 0;                    % [g] Liquid mass in tank 3 at time t0
+m40 = 0;                    % [g] Liquid mass in tank 4 at time t0
 F1_0 = 300;                 % [cm3/s] Flow rate from pump 1
 F2_0 = 300;                 % [cm3/s] Flow rate from pump 2
 F3_0 = 100;
@@ -58,7 +58,7 @@ zs = sensor_wo_noise(xs,at,rho);
 % R = [1^2 0 0 0; 0 1^2 0 0; 0 0 0.5^2 0; 0 0 0 0.5^2];     % Covariance for measurement noise
 
 R = [(0.4)^2 0 0 0; 0 (0.5)^2 0 0; 0 0 (0.05)^2 0; 0 0 0 (0.1)^2]*4;     % Covariance for measurement noise
-Q = [(40)^2 0 0 0; 0 (50)^2 0 0; 0 0 (5)^2 0; 0 0 0 (10)^2]*0.0000004;           % Covariance for process noise
+Q = [(40)^2 0 0 0; 0 (50)^2 0 0; 0 0 (5)^2 0; 0 0 0 (10)^2]*4;           % Covariance for process noise
 
 [A, B, C, Cz, E, Gw] = system_matrices(xs, At, at, rho, gamma1, gamma2, g);
 
@@ -83,13 +83,13 @@ B = sys.B;
 C = sys.C;
 
 % Define MPC parameters
-Qz = 1000 * eye(size(C, 1));  % Weight on output tracking
-S = 0.01 * eye(size(B, 2));  % Weight on control effort
+Qz = 10000 * eye(size(C, 1));  % Weight on output tracking
+S = 1 * eye(size(B, 2));  % Weight on control effort
 
 % Design MPC
 MPC_sys = UnconstrainedMPCDesign(A, B, C, Qz, S, Ph);
 
-h_sp = [50; 75];
+h_sp = [20; 30];
 hdev_sp = h_sp - y0(1:2);
 
 % Rsp = 100*ones(2*Ph,1);
@@ -121,19 +121,18 @@ ddev = d_k - d(:,1);
 
 for i = 1:length(t)
 
-    % Kalman filter
+% Kalman filter
 %--------------------------------------------------------------------------
 [x_hat, x_phat] = kalman_filter_aug_dynamic_pred(t(i), xdev(:,i), udev(:,i), ddev(:,i), At, rho, R, Q_aug, Ad_aug, Bd_aug, Ed_aug, Gw_aug, C_aug, Ph);
 %--------------------------------------------------------------------------
-
+xdev(:,i) = x_hat(1:4,1);
 xdev(:,i+1) = x_phat(1:4,1);
 
+x_mpc = [x_hat(1:4,1) x_phat(1:4,:)];
 
 for j = 1:Ph
-
-   
     % Beregn den lineære del af omkostningsfunktionen
-    g = MPC_sys.M_x0 * x_phat(1:4,j) + MPC_sys.M_r * ref_traj;
+    g = MPC_sys.M_x0 * x_mpc(:,j) + MPC_sys.M_r * ref_traj;
     
     % Løs QP-problemet for denne iteration
     u_current = qpsolver(MPC_sys.H, g, [], [], [], [], [], []);
@@ -143,29 +142,28 @@ for j = 1:Ph
 end
 
     % Gem de opdaterede estimater og fremtidige prediktioner
-    x_hat_log(:, i) = x_hat(1:4, end)+x0;          % Gem sidste opdaterede estimat
-    x_phat_log(:, :, i) = x_phat(1:4, :);    % Gem fremtidige prediktioner for hele horisonten
-    % Konverter til højder for visualisering
-    yhat_log = mass_to_height(x_hat_log, At, rho);
-
-
-
-% Apply first control action
-udev(:, i+1) = u_mpc(1:size(B, 2)); % First control input for the time step
-ulog = udev(:,1:end-1) + u0;
+    x_hat_log(:,i) = xdev(:,i) + x0;          % Gem sidste opdaterede estimat
+    
+    % Apply first control action
+    % udev(:, i+1) = u_mpc(1:2); % First control input for the time step
+    udev(:, i+1) = u_mpc(end-1:end);
+    ulog = udev(:,1:end-1) + u0;
 end
 
-
+% Konverter til højder for visualisering
+yhat_log = sensor_plus_noise(x_hat_log', At, rho, R);
 
 
 
 figure(1)
 for i = 1:2
     subplot(2,2,i)
-    plot(t/60, yhat_log(i,:),'b', 'LineWidth', 2); 
+    plot(t/60, yhat_log(i,:),'b', 'LineWidth', 2);
+    hold on 
     grid on;
     ylabel('height [cm]', 'FontSize', 12);
     xlim([0 t(end)/60]);
+    ylim([0 40]);
     % legend('Measured height', 'Dynamic Kalman filter', 'Static Kalman filter', 'Location', 'best');
     title(['Tank ', num2str(i)], 'FontSize', 10);
     hold on
@@ -177,6 +175,7 @@ for i = 1:2
     grid on;
     ylabel('[cm^3/s]', 'FontSize', 12);
     xlim([0 t(end)/60]);
+    % ylim([0 600]);
     % legend('Measured height', 'Dynamic Kalman filter', 'Static Kalman filter', 'Location', 'best');
     title(['F', num2str(i)], 'FontSize', 10);
     hold off

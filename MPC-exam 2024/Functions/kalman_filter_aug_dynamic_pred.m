@@ -38,15 +38,19 @@ for k = 1:1
     xhat_k_k = xhat_k_k1 + K * ek;      % Update the estimate using the Kalman gain
     P_k_k = P_k_k1 - K * Re_k * K';     % Update the error covariance matrix
     x_hat = [x_hat, xhat_k_k];          % Store the corrected state estimate
+    
+    
     % j-step prediction
     P_j = P_k_k1;                       % Start with the current predicted covariance
+    xhat_kj_k = xhat_k_k;
     for j = 1:Ph
-        x_phat(:, 1) = xhat_k_k;
+        
         % Predict the next state j-steps ahead
-        x_phat(:, j+1) = Ad_aug * x_phat(:, j) + Bd_aug * udev(:, k);
+        x_phat(:, j) = Ad_aug * xhat_kj_k + Bd_aug * udev(:, k);
         % Predict the corresponding covariance
         P_j = Ad_aug * P_j * Ad_aug' + Gw_aug * Q_aug * Gw_aug';
         P_pred{k, j} = P_j;             % Store predicted covariances
+        xhat_kj_k = x_phat(:, j);
     end
     xhat_k_k1 = x_phat(:, k);           % Prepare for the next iteration
     % P_k_k1 = Ad_aug * P_k_k * Ad_aug' + Gw_aug * Q_aug * Gw_aug'; % Predict the next error covariance
