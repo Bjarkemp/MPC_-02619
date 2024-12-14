@@ -60,12 +60,12 @@ seed = 10;
 [W,t,dW] = ScalarStdWienerProcess(tf,N,Ns,seed);
 sigma = [2^2 0; 0 2^2];                             % Covariance for disturbances in F3 and F4
 % d = d0 + sigma*dW'; 
-d = [130*ones(1,length(t));190*ones(1,length(t))];
+% d = [130*ones(1,length(t));190*ones(1,length(t))];
 
 % Step changes in manipulated variables
 u(2,1:end) = u(2,1)*0.5;
 u(1,1:end) = u(1,1)*1.5;
-% d(1,250:end) = d(1,250:end)+100;
+d(2,250:end) = d(2,250:end)+100;
 
 
 R = [(0.4)^2 0 0 0; 0 (0.5)^2 0 0; 0 0 (0.05)^2 0; 0 0 0 (0.1)^2]*4;     % Covariance for measurement noise
@@ -152,7 +152,7 @@ Bd_aug = [Bd; zeros(size(Ed, 2), size(Bd, 2))];
 Ed_aug = [Ed; zeros(size(Ed, 2), size(Ed, 2))];
 C_aug = [C, zeros(size(C, 1), size(Ed, 2))];
 Q_aug = [Q, zeros(size(Q, 1), size(Ed, 2)); zeros(size(Ed, 2), size(Q, 2)), eye(size(Ed, 2))];
-Gw_aug =  [Gwd, zeros(4,2); zeros(2,4) eye(2,2)];
+Gw_aug =  [Gw, zeros(4,2); zeros(2,4) eye(2,2)];
 
 [x_hat2_dyn, x_phat2_dyn] = kalman_filter_aug_dynamic(t, xdev, udev, ddev, At, rho, R, Q_aug, Ad_aug, Bd_aug, Ed_aug, Gw_aug, C_aug);
 [x_hat2_sta, x_phat2_sta] = kalman_filter_aug_static(t, xdev, udev, ddev, At, rho, R, Q_aug, Ad_aug, Bd_aug, Ed_aug, Gw_aug, C_aug);

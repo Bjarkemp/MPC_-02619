@@ -46,16 +46,13 @@ d0 = [F3_0; F4_0;];           % [cm3/s] Disturbance variables at t0
 d = d0.*ones(2, length(t));
 [y0] = sensor_wo_noise(x0', At, rho);
 
-%  -------------------- 8.1 MPC function ------------------------------
+%%  -------------------- 8.1 MPC function ------------------------------
 
 %linearization
 % Steady State
 xs = fsolve(@FourTankSystemWrap,x0,[],u0,d0,p);
 ys = sensor_wo_noise(xs,at,rho);
 zs = sensor_wo_noise(xs,at,rho);
-
-%Stochastic Brownian
-% R = [1^2 0 0 0; 0 1^2 0 0; 0 0 0.5^2 0; 0 0 0 0.5^2];     % Covariance for measurement noise
 
 R = [(0.4)^2 0 0 0; 0 (0.5)^2 0 0; 0 0 (0.05)^2 0; 0 0 0 (0.1)^2]*4;     % Covariance for measurement noise
 Q = [(40)^2 0 0 0; 0 (50)^2 0 0; 0 0 (5)^2 0; 0 0 0 (10)^2]*4;           % Covariance for process noise
