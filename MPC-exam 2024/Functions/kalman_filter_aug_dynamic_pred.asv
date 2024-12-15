@@ -1,4 +1,4 @@
-function [x_hat, x_phat] = kalman_filter_aug_dynamic_pred(t, xdev, udev, At, rho, R, Q_aug, Ad_aug, Bd_aug, Gw_aug, C_aug, Ph)
+function [x_hat, x_phat] = kalman_filter_aug_dynamic_pred(t, xdev, udev, ddev, At, rho, R, Q_aug, Ad_aug, Bd_aug, Gd_aug, Gw_aug, C_aug, Ph)
 % kalman_filter_aug_dynamic_pred: Implements an augmented dynamic Kalman filter with j-step prediction.
 % This function also stores predicted states and covariances for j-step prediction.
 

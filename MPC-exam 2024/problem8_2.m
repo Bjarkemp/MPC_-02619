@@ -31,7 +31,7 @@ tf = 60*20;                 % [s] End time (20 minutes)
 dt = 10;                    % [s] Time step size
 N = tf/dt;                  % Total number of steps
 t = t0:dt:tf;               % [s] Time vector
-Ph = 15;                    % Prediction horizon for MPC
+Ph = 100;                    % Prediction horizon for MPC
 
 % Initial tank masses [g]
 m10 = 17612.0123865384;     
@@ -48,6 +48,7 @@ F4_0 = 150;                 % External disturbance flow 2
 x0 = [m10; m20; m30; m40];  % Initial state vector (masses in tanks)
 u0 = [F1_0; F2_0];          % Initial manipulated variables (pumps)
 d0 = [F3_0; F4_0];          % Initial disturbances
+% d_k = d0.*ones(2,length(t));
 
 % Simulated sensor measurements without noise
 y0 = sensor_wo_noise(x0', At, rho);
@@ -76,8 +77,8 @@ D = zeros(2,4);             % Direct feedthrough matrix (zeros)
 
 
 % Covariance matrices for process and measurement noise
-R = [(0.4)^2 0 0 0; 0 (0.5)^2 0 0; 0 0 (0.05)^2 0; 0 0 0 (0.1)^2]*0.000000004; % Measurement noise
-Q = [(40)^2 0 0 0; 0 (50)^2 0 0; 0 0 (5)^2 0; 0 0 0 (10)^2]*0.00000000004;       % Process noise
+R = [(0.4)^2 0 0 0; 0 (0.5)^2 0 0; 0 0 (0.05)^2 0; 0 0 0 (0.1)^2]*4; % Measurement noise
+Q = [(40)^2 0 0 0; 0 (50)^2 0 0; 0 0 (5)^2 0; 0 0 0 (10)^2]*4;       % Process noise
 
 
 % -----------------------------------------------------------
@@ -94,7 +95,7 @@ Gw_aug = [Gw, zeros(4,2); zeros(2,4), eye(2)];
 % Design MPC
 % -----------------------------------------------------------
 sys = ss(Ad, Bd, C(1:2,:), D(:,1:2)); % Discrete-time state-space system
-Qz = 1000 * eye(size(sys.C, 1));% Weight for output tracking
+Qz = 300 * eye(size(sys.C, 1));% Weight for output tracking
 S = 1 * eye(size(sys.B, 2));    % Weight for control effort
 MPC_sys = UnconstrainedMPCDesign(sys.A, sys.B, sys.C, Qz, S, Ph);
 
@@ -111,8 +112,10 @@ Rsp_dev = [hdev_sp(1) * ones(1, length(t)+Ph);
 % Step changes at specific time steps
 stepchange1 = round(length(t)/4);     % First setpoint step change
 stepchange2 = round(length(t)*2/4);   % Second setpoint step change
+stepchange3 = round(length(t)*3/4);   % Third setpoint step change
 Rsp_dev(1, stepchange1:end) = 60 - y0(1); % Updated setpoint for Tank 1
 Rsp_dev(2, stepchange2:end) = 70 - y0(2); % Updated setpoint for Tank 2
+Rsp_dev(:, stepchange3:end) = 0; % Updated setpoint for Tank 2
 
 Rsp = [Rsp_dev(1,:) + y0(1); Rsp_dev(2,:) + y0(2)]; % Final setpoint trajectories
 
@@ -128,6 +131,7 @@ x(:,1) = x0; % Initialize system states
 u(:,1) = u0; % Initialize control inputs;
 
 for i = 1:tf/dt
+   
     pred_idx = i:min(i+Ph-1, length(Rsp_dev)); % Prediction indices
     Rsp_dev_pred = Rsp_dev(:, pred_idx);       % Predicted setpoints
     ref_traj = reshape(Rsp_dev_pred, [], 1);   % Reshape into a single vector
@@ -136,25 +140,34 @@ for i = 1:tf/dt
     udev(:,i) = u(:,i) - u0;   % Input deviation
     ddev(:,i) = d_k(:,i) - d0; % Disturbance deviation
 
-    % Kalman filter for state estimation
-    [x_hat, x_phat] = kalman_filter_aug_dynamic_pred(t(i), xdev(:,i), udev(:,i), ddev(:,i), At, rho, R, Q_aug, Ad_aug, Bd_aug, Ed_aug, Gw_aug, C_aug, Ph);
-
+    % Kalman filter for state estimation (Det kan godt være at vi ikke
+    % behøver et filter der predicter, siden jeg tror der også sker noget
+    % prediction i g
+    [x_hat, x_phat] = kalman_filter_aug_dynamic_pred(t(i), xdev(:,i), udev(:,i), At, rho, R, Q_aug, Ad_aug, Bd_aug, Gw_aug, C_aug, Ph);
     x_mpc = [x_hat(1:4,1) x_phat(1:4,:)]; % Combine estimated states
 
-    for j = 1:Ph+1
-        g = MPC_sys.M_x0 * x_mpc(:,j) + MPC_sys.M_r * ref_traj; % Linear cost function
-        u_current = qpsolver(MPC_sys.H, g, [], [], [], [], [], []); % Solve QP problem
-        u_mpc((j-1)*size(B,2)+1:j*size(B,2)) = u_current(1:size(B,2)); % Store control inputs
-    end
+    
 
-    u_pred = reshape(u_mpc, 2, Ph+1) + u0; % Predicted control inputs
+    % for j = 1:Ph+1
+    %     g = MPC_sys.M_x0 * x_mpc(:,j) + MPC_sys.M_r * ref_traj; % Linear cost function
+    %     u_current = qpsolver(MPC_sys.H, g, [], [], [], [], [], x_mpc(:,1)); % Solve QP problem
+    %     u_mpc((j-1)*size(B,2)+1:j*size(B,2)) = u_current(1:size(B,2)); % Store control inputs
+    % end
+
+    
+    % Anden måde at gøre det på (Tror dette følger diagrammet mere. MEGET HURTIGERE SIMULERING)
+    g = MPC_sys.M_x0 * x_hat(1:4,1) + MPC_sys.M_r * ref_traj; % Linear cost function
+    u_current = qpsolver(MPC_sys.H, g, [], [], [], [], [], x_hat(1:4,1)); % Solve QP problem
+    u_pred = reshape(u_current', 2, Ph) + u0; % Predicted control inputs
+    udev(:, i+1) = u_pred(:,1) - u0; % First control input for the time step
+
+    % u_pred = reshape(u_mpc, 2, Ph+1) + u0; % Predicted control inputs
     [~, ~, ~, ~, x_discrete] = discrete_fourtankProcess_plus_noise(x(:,i), [t(i) t(i+1)], u(:,i), d_k(:,i), p, Q);
     x(:,i+1) = x_discrete(end,:)'; % Update system state
 
 
     % Apply first control action
-    udev(:, i+1) = u_mpc(1:2); % First control input for the time step
-    % udev(:, i+1) = u_mpc(end-1:end);
+    % udev(:, i+1) = u_mpc(1:2); % First control input for the time step
     u(:,i+1) = udev(:,i+1) + u0;
 end
 
