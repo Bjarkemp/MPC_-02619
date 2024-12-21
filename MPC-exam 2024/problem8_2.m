@@ -28,7 +28,7 @@ At = p(5:8);                % Cross-sectional areas [cm^2]
 % -----------------------------------------------------------
 t0 = 0.0;                   % [s] Initial time
 tf = 60*20;                 % [s] End time (20 minutes)
-dt = 10;                    % [s] Time step size
+dt = 1;                    % [s] Time step size
 N = tf/dt;                  % Total number of steps
 t = t0:dt:tf;               % [s] Time vector
 Ph = 100;                    % Prediction horizon for MPC
@@ -95,7 +95,7 @@ Gw_aug = [Gw, zeros(4,2); zeros(2,4), eye(2)];
 % Design MPC
 % -----------------------------------------------------------
 sys = ss(Ad, Bd, C(1:2,:), D(:,1:2)); % Discrete-time state-space system
-Qz = 300 * eye(size(sys.C, 1));% Weight for output tracking
+Qz = 30000 * eye(size(sys.C, 1));% Weight for output tracking
 S = 1 * eye(size(sys.B, 2));    % Weight for control effort
 MPC_sys = UnconstrainedMPCDesign(sys.A, sys.B, sys.C, Qz, S, Ph);
 
@@ -114,13 +114,13 @@ stepchange1 = round(length(t)/4);     % First setpoint step change
 stepchange2 = round(length(t)*2/4);   % Second setpoint step change
 stepchange3 = round(length(t)*3/4);   % Third setpoint step change
 Rsp_dev(1, stepchange1:end) = 60 - y0(1); % Updated setpoint for Tank 1
-Rsp_dev(2, stepchange2:end) = 70 - y0(2); % Updated setpoint for Tank 2
+% Rsp_dev(2, stepchange2:end) = 70 - y0(2); % Updated setpoint for Tank 2
 Rsp_dev(:, stepchange3:end) = 0; % Updated setpoint for Tank 2
 
 Rsp = [Rsp_dev(1,:) + y0(1); Rsp_dev(2,:) + y0(2)]; % Final setpoint trajectories
 
 % d_k(1, stepchange1:end) = d_k(1, stepchange1:end) + 100; 
-% d_k(2, stepchange2:end) = d_k(2, stepchange2:end) - 50;
+d_k(2, stepchange2:end) = d_k(2, stepchange2:end) - 100;
 
 
 
