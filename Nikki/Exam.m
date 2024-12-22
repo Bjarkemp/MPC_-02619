@@ -635,33 +635,33 @@ subplot (2,1,2); hold on
 plot(t_plot,u_vec(1,:)+u(1),'r');plot(t_plot,u_nl(1,:)+u(1),'--m'); plot(t_plot,u_vec(2,:)+u(2),'b');plot(t_plot,u_nl(2,:)+u(2),'--g');
 hold off; grid on; legend('u_1','u_1 - Nonlinear system','u_2','u_2 - Nonlinear system','Location','best'); xlabel('Time [min]'), ylabel('Flow $[cm^3/s]$')
 
-% %% Problem 8 Input constrained MPC
-% ub_c = F_in(1,1,1)-150; ub = ub_c*ones(2*N,1);
-% lb_c = -F_in(1,1,1); lb = lb_c*ones(2*N,1);
-% u_rate = 10*ones(2*N,1);   % maximum rate  of change
-% l_rate = -10*ones(2*N,1);  % minimum rate of change
-% 
-% Q = 100;% Tuning parameter
-% S = eye(2)*0.001; % Tuning parameter
-% 
-% MPC_sys = MPCDesign(sys,Q,S,N);
-% x = zeros(4,t_f/Ts+1); 
-% u_vec = zeros(2,t_f/Ts+1);
-% cons = {lb,ub,l_rate,u_rate}; % Constraints
-% 
-% inputs = {x,x_s,u_vec,R,v_k,d_k};
-% 
-% type = 2; % Input constrained MPC
-% [y,y_nl,u_vec,u_nl] = MPC_Sim(sys,sys_aug,MPC_sys,[],Q_hat,Q_hat_aug,sigma_R,t_f,t_R,Ts,inputs,N,cons,[],[],p,type);
-% 
-% figure
-% subplot (2,1,1); hold on
-% plot(t_plot,y(1,:)+h_s(1),'r');plot(t_plot,y_nl(1,:),'--m'); plot(t_plot,R_plot(:,1),'--k'); plot(t_plot,y(2,:)+h_s(2),'b');plot(t_plot,y_nl(2,:),'--g'); plot(t_plot,R_plot(:,2),'-.k')
-% hold off; grid on; legend('h_1 - lin','h_1 - Nonlinear','r_1','h_2 - lin','h_2 - Nonlinear','r_2','Location','best'); ylabel('Height $[cm]$','Interpreter','latex')
-% subplot (2,1,2); hold on
-% plot(t_plot,u_vec(1,:)+u(1),'r');plot(t_plot,u_nl(1,:)+u(1),'--m'); plot(t_plot,u_vec(2,:)+u(2),'b');plot(t_plot,u_nl(2,:)+u(2),'--g'); yline(ub_c+300,'--k','LineWidth',2); yline(lb_c+300,'--k','LineWidth',2);
-% hold off; grid on; legend('u_1','u_1 - Nonlinear','u_2','u_2 - Nonlinear','Location','best'); xlabel('Time [min]'), ylabel('Flow $[cm^3/s]$'); ylim([-100 700])
-% 
+%% Problem 8 Input constrained MPC
+ub_c = F_in(1,1,1)-150; ub = ub_c*ones(2*N,1);
+lb_c = -F_in(1,1,1); lb = lb_c*ones(2*N,1);
+u_rate = 10*ones(2*N,1);   % maximum rate  of change
+l_rate = -10*ones(2*N,1);  % minimum rate of change
+
+Q = 100;% Tuning parameter
+S = eye(2)*0.001; % Tuning parameter
+
+MPC_sys = MPCDesign(sys,Q,S,N);
+x = zeros(4,t_f/Ts+1); 
+u_vec = zeros(2,t_f/Ts+1);
+cons = {lb,ub,l_rate,u_rate}; % Constraints
+
+inputs = {x,x_s,u_vec,R,v_k,d_k};
+
+type = 2; % Input constrained MPC
+[y,y_nl,u_vec,u_nl] = MPC_Sim(sys,sys_aug,MPC_sys,[],Q_hat,Q_hat_aug,sigma_R,t_f,t_R,Ts,inputs,N,cons,[],[],p,type);
+
+figure
+subplot (2,1,1); hold on
+plot(t_plot,y(1,:)+h_s(1),'r');plot(t_plot,y_nl(1,:),'--m'); plot(t_plot,R_plot(:,1),'--k'); plot(t_plot,y(2,:)+h_s(2),'b');plot(t_plot,y_nl(2,:),'--g'); plot(t_plot,R_plot(:,2),'-.k')
+hold off; grid on; legend('h_1 - lin','h_1 - Nonlinear','r_1','h_2 - lin','h_2 - Nonlinear','r_2','Location','best'); ylabel('Height $[cm]$','Interpreter','latex')
+subplot (2,1,2); hold on
+plot(t_plot,u_vec(1,:)+u(1),'r');plot(t_plot,u_nl(1,:)+u(1),'--m'); plot(t_plot,u_vec(2,:)+u(2),'b');plot(t_plot,u_nl(2,:)+u(2),'--g'); yline(ub_c+300,'--k','LineWidth',2); yline(lb_c+300,'--k','LineWidth',2);
+hold off; grid on; legend('u_1','u_1 - Nonlinear','u_2','u_2 - Nonlinear','Location','best'); xlabel('Time [min]'), ylabel('Flow $[cm^3/s]$'); ylim([-100 700])
+
 % 
 % %% Problem 9 Hard input soft output constrained MPC
 % W_z = 100*eye(2);

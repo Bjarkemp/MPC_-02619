@@ -31,13 +31,7 @@ tf = 60*20;                 % [s] End time (20 minutes)
 dt = 1;                    % [s] Time step size
 N = tf/dt;                  % Total number of steps
 t = t0:dt:tf;               % [s] Time vector
-Ph = 100;                    % Prediction horizon for MPC
-
-% Initial tank masses [g]
-m10 = 17612.0123865384;     
-m20 = 29640.6694949484;     
-m30 = 4644.21948249808;     
-m40 = 9378.49308238605;     
+Ph = 20;                    % Prediction horizon for MPC  
 
 % Initial flow rates [cm^3/s]
 F1_0 = 300;                 % Pump flow rate 1
@@ -45,14 +39,15 @@ F2_0 = 300;                 % Pump flow rate 2
 F3_0 = 100;                 % External disturbance flow 1
 F4_0 = 150;                 % External disturbance flow 2
 
-x0 = [m10; m20; m30; m40];  % Initial state vector (masses in tanks)
 u0 = [F1_0; F2_0];          % Initial manipulated variables (pumps)
 d0 = [F3_0; F4_0];          % Initial disturbances
 % d_k = d0.*ones(2,length(t));
+% Initial tank masses [g]
+xs0 = [5000; 5000; 5000; 5000]; % [g] Initial guess on xs
+x0 = fsolve(@FourTankSystemWrap,xs0,[],u0,d0,p);
 
 % Simulated sensor measurements without noise
 y0 = sensor_wo_noise(x0', At, rho);
-
 
 % -----------------------------------------------------------
 % Modeling disturbance as Brownian motion
@@ -75,11 +70,9 @@ D = zeros(2,4);             % Direct feedthrough matrix (zeros)
 % Discretization using Zero-Order Hold (ZOH)
 [Ad, Bd, Ed] = c2dzoh(A, B, E, dt);
 
-
 % Covariance matrices for process and measurement noise
 R = [(0.4)^2 0 0 0; 0 (0.5)^2 0 0; 0 0 (0.05)^2 0; 0 0 0 (0.1)^2]*4; % Measurement noise
 Q = [(40)^2 0 0 0; 0 (50)^2 0 0; 0 0 (5)^2 0; 0 0 0 (10)^2]*4;       % Process noise
-
 
 % -----------------------------------------------------------
 % System augmentation for Kalman filter
@@ -95,10 +88,20 @@ Gw_aug = [Gw, zeros(4,2); zeros(2,4), eye(2)];
 % Design MPC
 % -----------------------------------------------------------
 sys = ss(Ad, Bd, C(1:2,:), D(:,1:2)); % Discrete-time state-space system
-Qz = 30000 * eye(size(sys.C, 1));% Weight for output tracking
+Qz = 300 * eye(size(sys.C, 1));% Weight for output tracking
 S = 1 * eye(size(sys.B, 2));    % Weight for control effort
-MPC_sys = UnconstrainedMPCDesign(sys.A, sys.B, sys.C, Qz, S, Ph);
 
+%Constraints umin =< u =< umax !IN DEVIATION VARIABLES!
+umin = 0; 
+umax = 500;
+Umin = repmat(umin - u0,2*Ph,1);
+Umax = repmat(umax - u0,2*Ph,1);
+lb_rate = repmat(-10,2*Ph,1);  % minimum rate of change
+ub_rate = repmat(10,2*Ph,1);   % maximum rate  of change
+
+
+%setting up system
+MPC_sys = UnconstrainedMPCDesign(sys.A, sys.B, sys.C, Qz, S, Ph);
 
 % -----------------------------------------------------------
 % Setpoint trajectories with step changes
@@ -145,26 +148,24 @@ for i = 1:tf/dt
     % prediction i g
     [x_hat, x_phat] = kalman_filter_aug_dynamic_pred(t(i), xdev(:,i), udev(:,i), At, rho, R, Q_aug, Ad_aug, Bd_aug, Gw_aug, C_aug, Ph);
     x_mpc = [x_hat(1:4,1) x_phat(1:4,:)]; % Combine estimated states
-
-    
-
-    % for j = 1:Ph+1
-    %     g = MPC_sys.M_x0 * x_mpc(:,j) + MPC_sys.M_r * ref_traj; % Linear cost function
-    %     u_current = qpsolver(MPC_sys.H, g, [], [], [], [], [], x_mpc(:,1)); % Solve QP problem
-    %     u_mpc((j-1)*size(B,2)+1:j*size(B,2)) = u_current(1:size(B,2)); % Store control inputs
-    % end
-
-    
-    % Anden måde at gøre det på (Tror dette følger diagrammet mere. MEGET HURTIGERE SIMULERING)
-    g = MPC_sys.M_x0 * x_hat(1:4,1) + MPC_sys.M_r * ref_traj; % Linear cost function
-    u_current = qpsolver(MPC_sys.H, g, [], [], [], [], [], x_hat(1:4,1)); % Solve QP problem
-    u_pred = reshape(u_current', 2, Ph) + u0; % Predicted control inputs
-    udev(:, i+1) = u_pred(:,1) - u0; % First control input for the time step
-
+    if i == 1 % can have a zero'th iteration on MV's
+        dub = ub_rate + MPC_sys.I0 * udev(:,i);
+        dlb = lb_rate + MPC_sys.I0 * udev(:,i);
+        g = MPC_sys.M_x0 * x_hat(1:4,1) + MPC_sys.M_r * ref_traj + MPC_sys.M_u1 * udev(:,i); % Linear cost function
+        u_current = qpsolver(MPC_sys.H, g, Umin, Umax, MPC_sys.Lambda, dlb, dub, x_hat(1:4,1)); % Solve QP problem
+        u_pred = reshape(u_current', 2, Ph) + u0; % Predicted control inputs
+        udev(:, i+1) = u_pred(:,1) - u0; % First control input for the time step
+    else
+        dub = ub_rate + MPC_sys.I0 * udev(:,i-1);
+        dlb = lb_rate + MPC_sys.I0 * udev(:,i-1);
+        g = MPC_sys.M_x0 * x_hat(1:4,1) + MPC_sys.M_r * ref_traj + MPC_sys.M_u1 * udev(:,i-1); % Linear cost function
+        u_current = qpsolver(MPC_sys.H, g, Umin, Umax, MPC_sys.Lambda, dlb, dub, x_hat(1:4,1)); % Solve QP problem
+        u_pred = reshape(u_current', 2, Ph) + u0; % Predicted control inputs
+        udev(:, i+1) = u_pred(:,1) - u0; % First control input for the time step        
+    end % if
     % u_pred = reshape(u_mpc, 2, Ph+1) + u0; % Predicted control inputs
     [~, ~, ~, ~, x_discrete] = discrete_fourtankProcess_plus_noise(x(:,i), [t(i) t(i+1)], u(:,i), d_k(:,i), p, Q);
     x(:,i+1) = x_discrete(end,:)'; % Update system state
-
 
     % Apply first control action
     % udev(:, i+1) = u_mpc(1:2); % First control input for the time step
@@ -201,6 +202,9 @@ for i = 1:2
     % Primary Y-axis for flow rate
     yyaxis left
     plot(t/60, u(i,:),'b', 'LineWidth', 2); % Plot control inputs (flow rates)
+    hold on;
+    yline(umin, '--r', 'LineWidth', 1.5); % Plot umin as a dashed red line
+    yline(umax, '--r', 'LineWidth', 1.5); % Plot umax as a dashed green line
     ylabel('[cm^3/s]', 'FontSize', 12); % Label for primary Y-axis (flow rate)
     ylim([0 800]); % Set limits for flow rate
 
@@ -212,8 +216,9 @@ for i = 1:2
 
     grid on; % Add grid to the plot
     xlim([0 t(end)/60]); % Set x-axis limits (time in minutes)
-    legend('Manipulated variable', 'Set point', 'Location', 'best'); % Add legend
+    legend('Manipulated variable', 'umin', 'umax', 'Set point', 'Location', 'best'); % Add legend
     title(['F', num2str(i)], 'FontSize', 10); % Title for the subplot
 end
+
 %% save figure
-saveas(gcf,fullfile('C:\Users\bjark\OneDrive\Skrivebord\MPC_-02619\MPC-exam 2024\Plots','problem8.tiff'),'tiff')
+saveas(gcf,fullfile('C:\Users\bjark\OneDrive\Skrivebord\MPC_-02619\MPC-exam 2024\Plots','problem9.tiff'),'tiff')

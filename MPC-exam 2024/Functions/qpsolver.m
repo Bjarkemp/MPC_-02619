@@ -24,12 +24,3 @@ function solution = qpsolver(H, g, lower_bound, upper_bound, constraint_mat, con
     % Solve the quadratic programming problem
     [solution, ~] = quadprog(H, g, combined_constraints, combined_bounds, [], [], lower_bound, upper_bound, initial_guess, qp_options);
 end
-
-
-
-% function [x_new] = qpsolver(H,g,low_x,up_x,mat,lb,ub,x_init)
-%     A_quad = [mat ; -mat];
-%     bound = [ub ; -lb];
-%     options=optimoptions("quadprog","Display","none");
-%     [x_new info] = quadprog(H,g,A_quad,bound,[],[],low_x,up_x,x_init,options);
-% end

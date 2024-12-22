@@ -174,23 +174,23 @@ end % k
 % Y1_stoc =  [Y_L(end/2+1:end,1)  Y_M(end/2+1:end,1) Y_H(end/2+1:end,1)];
 % Y2_stoc =  [Y_L(end/2+1:end,2)  Y_M(end/2+1:end,2) Y_H(end/2+1:end,2)];
 
-for i = 1:3 % Only look at input 1
-    [T,X] = ode15s(@FourTankSystem,[t0:1:t_f],x_s,[],F_in(i,:,2),p);
-    Step_y1 = (X(:,1)-x_s(1))/(F_in(i,1,2)-F_in(1,1,1));
-    Step_y2 = (X(:,2)-x_s(2))/(F_in(i,1,2)-F_in(1,1,1));
-%     Y1_stoc_norm(:,i) = ( Y_L(end/2+1:end,1) - (x_s(1) / (rho*A1)) )/(F_in(i,1,2)-F_in(1,1,1)); 
-%     Y2_stoc_norm(:,i) = ( Y_L(end/2+1:end,2) - (x_s(2) / (rho*A1)) )/(F_in(i,1,2)-F_in(1,1,1)); 
-    Y1_stoc_norm(:,i) = ( y_norm_step(:,i) - (x_s(1) / (rho*A1)) )/(F_in(i,1,2)-F_in(1,1,1)); 
-    Y2_stoc_norm(:,i) = ( y_norm_step(:,3+i) - (x_s(2) / (rho*A1)) )/(F_in(i,1,2)-F_in(1,1,1)); 
-    step_u1(i,:) = {T , Step_y1 , Step_y2};
-end
-
-for i = 1:3 % Only look at input 2
-    [T,X] = ode15s(@FourTankSystem,[t0:1:t_f],x_s,[],F_in(i,:,3),p);
-    Step_y1 = (X(:,1)-x_s(1))/(F_in(i,2,3)-F_in(i,2,1));
-    Step_y2 = (X(:,2)-x_s(2))/(F_in(i,2,3)-F_in(i,2,1));
-    step_u2(i,:) = {T , Step_y1 , Step_y2};
-end
+% for i = 1:3 % Only look at input 1
+%     [T,X] = ode15s(@FourTankSystem,[t0:1:t_f],x_s,[],F_in(i,:,2),p);
+%     Step_y1 = (X(:,1)-x_s(1))/(F_in(i,1,2)-F_in(1,1,1));
+%     Step_y2 = (X(:,2)-x_s(2))/(F_in(i,1,2)-F_in(1,1,1));
+% %     Y1_stoc_norm(:,i) = ( Y_L(end/2+1:end,1) - (x_s(1) / (rho*A1)) )/(F_in(i,1,2)-F_in(1,1,1)); 
+% %     Y2_stoc_norm(:,i) = ( Y_L(end/2+1:end,2) - (x_s(2) / (rho*A1)) )/(F_in(i,1,2)-F_in(1,1,1)); 
+%     Y1_stoc_norm(:,i) = ( y_norm_step(:,i) - (x_s(1) / (rho*A1)) )/(F_in(i,1,2)-F_in(1,1,1)); 
+%     Y2_stoc_norm(:,i) = ( y_norm_step(:,3+i) - (x_s(2) / (rho*A1)) )/(F_in(i,1,2)-F_in(1,1,1)); 
+%     step_u1(i,:) = {T , Step_y1 , Step_y2};
+% end
+% 
+% for i = 1:3 % Only look at input 2
+%     [T,X] = ode15s(@FourTankSystem,[t0:1:t_f],x_s,[],F_in(i,:,3),p);
+%     Step_y1 = (X(:,1)-x_s(1))/(F_in(i,2,3)-F_in(i,2,1));
+%     Step_y2 = (X(:,2)-x_s(2))/(F_in(i,2,3)-F_in(i,2,1));
+%     step_u2(i,:) = {T , Step_y1 , Step_y2};
+% end
 
 % figure
 % subplot(2,2,1); hold on
@@ -663,273 +663,273 @@ plot(t_plot,u_vec(1,:)+u(1),'r');plot(t_plot,u_nl(1,:)+u(1),'--m'); plot(t_plot,
 hold off; grid on; legend('u_1','u_1 - Nonlinear','u_2','u_2 - Nonlinear','Location','best'); xlabel('Time [min]'), ylabel('Flow $[cm^3/s]$'); ylim([-100 700])
 
 
-%% Problem 9 Hard input soft output constrained MPC
-W_z = 100*eye(2);
-W_u = 0*eye(2);
-W_du = 0*eye(2);
-W = [W_z W_u W_du];
-
-% Boundaries
-W_t1 = 10000*eye(2);
-W_t2 = 10000*eye(2);
-W_s1 = 10000*eye(2);
-W_s2 = 10000*eye(2);
-soft_cons = {W_t1,W_t2,W_s1,W_s2};
-
-MPC_sys_soft = Soft_MPCDesign(sys,MPC_sys,N,W,soft_cons);
-
-% Boundaries Inputs
-U_bar = kron(ones(N,1),[0;0]);
-ub_c = F_in(1,1,1)-150; U_max = ub_c*ones(2*N,1);
-lb_c = -F_in(1,1,1); U_min = lb_c*ones(2*N,1);
-
-% Boundaries input deviation
-D_u_min = kron(ones(N,1),[-10;-10]);
-D_u_max = kron(ones(N,1),[10;10]);
-
-% Boundaries output
-Z_max = kron(ones(N,1),[110-h_s(1);120-h_s(2)]);
-Z_min = kron(ones(N,1),[85-h_s(1);105-h_s(2)]);
-
-cons_InOut = {U_bar,U_min,U_max,D_u_min,D_u_max,Z_max,Z_min};
-
-x = zeros(4,t_f/Ts+1); 
-u_vec = zeros(2,t_f/Ts+1);
-inputs = {x,x_s,u_vec,R,v_k,d_k};
-type = 3; % Input/Output constrained MPC
-[y,y_nl,u_vec,u_nl] = MPC_Sim(sys,sys_aug,MPC_sys,MPC_sys_soft,Q_hat,Q_hat_aug,sigma_R,t_f,t_R,Ts,inputs,N,cons,cons_InOut,[],p,type);
-
-figure
-subplot (2,2,1); hold on
-plot(t_plot,y(1,:)+h_s(1),'r');plot(t_plot,y_nl(1,:),'--b'); plot(t_plot,R_plot(:,1),'--k'); yline(Z_max(1,1)+h_s(1),'--m','LineWidth',2); yline(Z_min(1,1)+h_s(1),'--m','LineWidth',2);
-hold off; grid on; legend('Linear','Nonlinear','r','Bounds','Location','best','Interpreter','latex'); ylabel('Height $[cm]$','Interpreter','latex'); ylim([80 130])
-subplot(2,2,2); hold on
-plot(t_plot,y(2,:)+h_s(2),'r');plot(t_plot,y_nl(2,:),'--b'); plot(t_plot,R_plot(:,2),'-.k'); yline(Z_max(2,1)+h_s(2),'--m','LineWidth',2); yline(Z_min(2,1)+h_s(2),'--m','LineWidth',2);
-hold off; grid on; ylabel('Height $[cm]$','Interpreter','latex');ylim([80 130])
-subplot (2,2,3); hold on
-plot(t_plot,u_vec(1,:)+u(1),'r');plot(t_plot,u_nl(1,:)+u(1),'--b'); yline(ub_c+300,'--k','LineWidth',2); yline(lb_c+300,'--k','LineWidth',2);yline(ub_c+300,'--k','LineWidth',2); yline(lb_c+300,'--k','LineWidth',2);
-hold off; grid on; legend('Linear','Nonlinear','Bounds','Location','best','Interpreter','latex'); xlabel('Time [min]'), ylabel('Flow $[cm^3/s]$'); ylim([-100 700])
-subplot (2,2,4); hold on
-plot(t_plot,u_vec(2,:)+u(2),'r');plot(t_plot,u_nl(2,:)+u(2),'--b'); yline(ub_c+300,'--k','LineWidth',2); yline(lb_c+300,'--k','LineWidth',2);yline(ub_c+300,'--k','LineWidth',2); yline(lb_c+300,'--k','LineWidth',2);
-hold off; grid on;  xlabel('Time [min]'), ylabel('Flow $[cm^3/s]$'); ylim([-100 700])
-
-%% Problem 11 Nonlinear MPC
-t_f = 1800;
-t = 0:Ts:t_f;
-x = zeros(4,length(t)); x(:,1) = x_s';
-x_hat = x;
-x_hat1 = x;
-u_cdekf = zeros(2,length(t)) + u; 
-u_cdekf(1,40:80) = 400;  u_cdekf(1,80:121) = 500;
-u_cdekf(2,40:80) = 200;  u_cdekf(2,80:121) = 250;
-y = [];
-
-v_k = mvnrnd(zeros(t_f/Ts+1,size(C_c,1)),eye(2)*sigma_R)'; % meas noise
-d_k = mvnrnd(zeros(t_f/Ts+1,size(E_c,2)),eye(2)*Rd)'; % disturbance noise
-P_k = eye(4);
-Re=zeros(2,2,t_f/Ts+1);
-for i = 1:t_f/Ts
-    f = feval(@f_func,x(:,i),u_cdekf(:,i),d+d_k(:,i),p);
-    g = feval(@sigma_func,x(:,i),p);
-    x(:,i+1)=x(:,i)+f*Ts + g*v_k(:,i);
-    y(:,i)=C_c*x(:,i) + v_k(:,i);
-
-    [x_hat1(:,i),~,x_hat(:,i+1),P_k1,error(:,i),Re(:,:,i)] = CDEKF(E_k,@P_func,p,x_hat(:,i),u_cdekf(:,i),d+d_k(:,i),P_k,y(:,i),eye(2)*sigma_R,t,i,C_c);
-    
-end
-y(:,t_f/Ts+1)=C_c*x(:,t_f/Ts+1) + v_k(:,t_f/Ts+1);
-
-figure
-subplot(2,2,[1 2]); hold on
-% plot(t/60,x(1,:),'--k'); plot(t/60,x(2,:),'--k'); plot(t/60,x(3,:),'--k'); plot(t/60,x(4,:),'--k');
-plot(t/60,x_hat(1,:),'r'); plot(t/60,x_hat(2,:),'b'); plot(t/60,x_hat(3,:),'g'); plot(t/60,x_hat(4,:),'m')
-plot(t/60,x(1,:),'--k'); plot(t/60,x(2,:),'--k'); plot(t/60,x(3,:),'--k'); plot(t/60,x(4,:),'--k');
-grid on; legend({'$\hat{x}_1$','$\hat{x}_2$','$\hat{x}_3$','$\hat{x}_4$','True states','','',''},'interpreter','latex'); ylabel('Mass $[g]$'); xlabel('Time $[min]$')
-subplot(2,2,3)
-plot(t/60,u_cdekf(:,:))
-grid on; ylim([0 500]);legend('u_1','u_2'); ylabel('Flow $[cm^3/s]$'); xlabel('Time $[min]$')
-subplot(2,2,4); hold on;
-plot(t/60,x(1,:)-x_hat(1,:)); plot(t/60,x(2,:)-x_hat(2,:)); plot(t/60,x(3,:)-x_hat(3,:)); plot(t/60,x(4,:)-x_hat(4,:));
-grid on; xlabel('Time $[min]$'); ylabel('Erorr $[g]$'); legend('e_1','e_2','e_3','e_4')
-
-%% Problem 11.3 Parameter estimation
-% import casadi.*
-% % Estimation
-%  %ipopt options
-%  opts=struct;
-%  opts.ipopt.max_iter=100;
-%  opts.ipopt.print_level=0;
-%  opts.print_time=0;
-%  opts.ipopt.acceptable_tol=1e-8;
-%  opts.ipopt.acceptable_obj_change_tol=1e-6;
-% % Parameter optimization:
-% A_1 = SX.sym('a1');
-% A_2 = SX.sym('a2');
-% w={};
-% w0=[];
-% lbw=[];
-% ubw=[];
-% % Continuous time dynamics
-% Vm=0;
-% for i=1:t_f/Ts
-%     error=y(:,i)-[(1/A_1)*x_hat(1,i);(1/A_2)*x_hat(2,i)];
-%     Vm=Vm+0.5*log(det(Re(:,:,i)))+0.5*error'*inv(Re(:,:,i))*error;
+% %% Problem 9 Hard input soft output constrained MPC
+% W_z = 100*eye(2);
+% W_u = 0*eye(2);
+% W_du = 0*eye(2);
+% W = [W_z W_u W_du];
+% 
+% % Boundaries
+% W_t1 = 10000*eye(2);
+% W_t2 = 10000*eye(2);
+% W_s1 = 10000*eye(2);
+% W_s2 = 10000*eye(2);
+% soft_cons = {W_t1,W_t2,W_s1,W_s2};
+% 
+% MPC_sys_soft = Soft_MPCDesign(sys,MPC_sys,N,W,soft_cons);
+% 
+% % Boundaries Inputs
+% U_bar = kron(ones(N,1),[0;0]);
+% ub_c = F_in(1,1,1)-150; U_max = ub_c*ones(2*N,1);
+% lb_c = -F_in(1,1,1); U_min = lb_c*ones(2*N,1);
+% 
+% % Boundaries input deviation
+% D_u_min = kron(ones(N,1),[-10;-10]);
+% D_u_max = kron(ones(N,1),[10;10]);
+% 
+% % Boundaries output
+% Z_max = kron(ones(N,1),[110-h_s(1);120-h_s(2)]);
+% Z_min = kron(ones(N,1),[85-h_s(1);105-h_s(2)]);
+% 
+% cons_InOut = {U_bar,U_min,U_max,D_u_min,D_u_max,Z_max,Z_min};
+% 
+% x = zeros(4,t_f/Ts+1); 
+% u_vec = zeros(2,t_f/Ts+1);
+% inputs = {x,x_s,u_vec,R,v_k,d_k};
+% type = 3; % Input/Output constrained MPC
+% [y,y_nl,u_vec,u_nl] = MPC_Sim(sys,sys_aug,MPC_sys,MPC_sys_soft,Q_hat,Q_hat_aug,sigma_R,t_f,t_R,Ts,inputs,N,cons,cons_InOut,[],p,type);
+% 
+% figure
+% subplot (2,2,1); hold on
+% plot(t_plot,y(1,:)+h_s(1),'r');plot(t_plot,y_nl(1,:),'--b'); plot(t_plot,R_plot(:,1),'--k'); yline(Z_max(1,1)+h_s(1),'--m','LineWidth',2); yline(Z_min(1,1)+h_s(1),'--m','LineWidth',2);
+% hold off; grid on; legend('Linear','Nonlinear','r','Bounds','Location','best','Interpreter','latex'); ylabel('Height $[cm]$','Interpreter','latex'); ylim([80 130])
+% subplot(2,2,2); hold on
+% plot(t_plot,y(2,:)+h_s(2),'r');plot(t_plot,y_nl(2,:),'--b'); plot(t_plot,R_plot(:,2),'-.k'); yline(Z_max(2,1)+h_s(2),'--m','LineWidth',2); yline(Z_min(2,1)+h_s(2),'--m','LineWidth',2);
+% hold off; grid on; ylabel('Height $[cm]$','Interpreter','latex');ylim([80 130])
+% subplot (2,2,3); hold on
+% plot(t_plot,u_vec(1,:)+u(1),'r');plot(t_plot,u_nl(1,:)+u(1),'--b'); yline(ub_c+300,'--k','LineWidth',2); yline(lb_c+300,'--k','LineWidth',2);yline(ub_c+300,'--k','LineWidth',2); yline(lb_c+300,'--k','LineWidth',2);
+% hold off; grid on; legend('Linear','Nonlinear','Bounds','Location','best','Interpreter','latex'); xlabel('Time [min]'), ylabel('Flow $[cm^3/s]$'); ylim([-100 700])
+% subplot (2,2,4); hold on
+% plot(t_plot,u_vec(2,:)+u(2),'r');plot(t_plot,u_nl(2,:)+u(2),'--b'); yline(ub_c+300,'--k','LineWidth',2); yline(lb_c+300,'--k','LineWidth',2);yline(ub_c+300,'--k','LineWidth',2); yline(lb_c+300,'--k','LineWidth',2);
+% hold off; grid on;  xlabel('Time [min]'), ylabel('Flow $[cm^3/s]$'); ylim([-100 700])
+% 
+% %% Problem 11 Nonlinear MPC
+% t_f = 1800;
+% t = 0:Ts:t_f;
+% x = zeros(4,length(t)); x(:,1) = x_s';
+% x_hat = x;
+% x_hat1 = x;
+% u_cdekf = zeros(2,length(t)) + u; 
+% u_cdekf(1,40:80) = 400;  u_cdekf(1,80:121) = 500;
+% u_cdekf(2,40:80) = 200;  u_cdekf(2,80:121) = 250;
+% y = [];
+% 
+% v_k = mvnrnd(zeros(t_f/Ts+1,size(C_c,1)),eye(2)*sigma_R)'; % meas noise
+% d_k = mvnrnd(zeros(t_f/Ts+1,size(E_c,2)),eye(2)*Rd)'; % disturbance noise
+% P_k = eye(4);
+% Re=zeros(2,2,t_f/Ts+1);
+% for i = 1:t_f/Ts
+%     f = feval(@f_func,x(:,i),u_cdekf(:,i),d+d_k(:,i),p);
+%     g = feval(@sigma_func,x(:,i),p);
+%     x(:,i+1)=x(:,i)+f*Ts + g*v_k(:,i);
+%     y(:,i)=C_c*x(:,i) + v_k(:,i);
+% 
+%     [x_hat1(:,i),~,x_hat(:,i+1),P_k1,error(:,i),Re(:,:,i)] = CDEKF(E_k,@P_func,p,x_hat(:,i),u_cdekf(:,i),d+d_k(:,i),P_k,y(:,i),eye(2)*sigma_R,t,i,C_c);
+% 
 % end
-% w = {w{:},A_1;A_2};
-% lbw = [lbw; 0; 0;];
-% ubw = [ubw;  inf;  inf;];
-% w0 = [w0; 0;0;];
+% y(:,t_f/Ts+1)=C_c*x(:,t_f/Ts+1) + v_k(:,t_f/Ts+1);
 % 
-% prob = struct('f', Vm, 'x', vertcat(w{:}));
+% figure
+% subplot(2,2,[1 2]); hold on
+% % plot(t/60,x(1,:),'--k'); plot(t/60,x(2,:),'--k'); plot(t/60,x(3,:),'--k'); plot(t/60,x(4,:),'--k');
+% plot(t/60,x_hat(1,:),'r'); plot(t/60,x_hat(2,:),'b'); plot(t/60,x_hat(3,:),'g'); plot(t/60,x_hat(4,:),'m')
+% plot(t/60,x(1,:),'--k'); plot(t/60,x(2,:),'--k'); plot(t/60,x(3,:),'--k'); plot(t/60,x(4,:),'--k');
+% grid on; legend({'$\hat{x}_1$','$\hat{x}_2$','$\hat{x}_3$','$\hat{x}_4$','True states','','',''},'interpreter','latex'); ylabel('Mass $[g]$'); xlabel('Time $[min]$')
+% subplot(2,2,3)
+% plot(t/60,u_cdekf(:,:))
+% grid on; ylim([0 500]);legend('u_1','u_2'); ylabel('Flow $[cm^3/s]$'); xlabel('Time $[min]$')
+% subplot(2,2,4); hold on;
+% plot(t/60,x(1,:)-x_hat(1,:)); plot(t/60,x(2,:)-x_hat(2,:)); plot(t/60,x(3,:)-x_hat(3,:)); plot(t/60,x(4,:)-x_hat(4,:));
+% grid on; xlabel('Time $[min]$'); ylabel('Erorr $[g]$'); legend('e_1','e_2','e_3','e_4')
 % 
-% solver = nlpsol('solver', 'ipopt', prob, opts);
+% %% Problem 11.3 Parameter estimation
+% % import casadi.*
+% % % Estimation
+% %  %ipopt options
+% %  opts=struct;
+% %  opts.ipopt.max_iter=100;
+% %  opts.ipopt.print_level=0;
+% %  opts.print_time=0;
+% %  opts.ipopt.acceptable_tol=1e-8;
+% %  opts.ipopt.acceptable_obj_change_tol=1e-6;
+% % % Parameter optimization:
+% % A_1 = SX.sym('a1');
+% % A_2 = SX.sym('a2');
+% % w={};
+% % w0=[];
+% % lbw=[];
+% % ubw=[];
+% % % Continuous time dynamics
+% % Vm=0;
+% % for i=1:t_f/Ts
+% %     error=y(:,i)-[(1/A_1)*x_hat(1,i);(1/A_2)*x_hat(2,i)];
+% %     Vm=Vm+0.5*log(det(Re(:,:,i)))+0.5*error'*inv(Re(:,:,i))*error;
+% % end
+% % w = {w{:},A_1;A_2};
+% % lbw = [lbw; 0; 0;];
+% % ubw = [ubw;  inf;  inf;];
+% % w0 = [w0; 0;0;];
+% % 
+% % prob = struct('f', Vm, 'x', vertcat(w{:}));
+% % 
+% % solver = nlpsol('solver', 'ipopt', prob, opts);
+% % 
+% % % Solve the NLP
+% % sol = solver('x0', w0, 'lbx', lbw, 'ubx', ubw );
+% % estimated_param=full(sol.x)
 % 
-% % Solve the NLP
-% sol = solver('x0', w0, 'lbx', lbw, 'ubx', ubw );
-% estimated_param=full(sol.x)
-
-%% Problem 12 Economic MPC
-ub_c = F_in(1,1,1)-150; ub = ub_c*ones(2*N,1);
-lb_c = -F_in(1,1,1); lb = lb_c*ones(2*N,1);
-u_rate = 100*ones(2*N,1);   % maximum rate  of change
-l_rate = -50*ones(2*N,1);  % minimum rate of change
-Ubar=kron(ones(N,1),[0;0]);
-cons = {lb,ub,l_rate,u_rate}; % Constraints
-
-t_f = 1800; % 30 minutes
-v_k = mvnrnd(zeros(t_f/Ts,size(C_c,1)),eye(2)*sigma_R)';
-d_k = mvnrnd(zeros(t_f/Ts,size(E_c,2)),eye(2)*Rd)';
-x = zeros(4,t_f/Ts+1);
-u_vec = zeros(2,t_f/Ts+1);
-R1 = [0 ; 0];
-R2 = [10 ; 10];
-R3 = [20 ;-10];
-R=zeros(2*(N+t_f/Ts),1);
-R(1:2*(t_f/Ts/3),1)=kron(ones(t_f/Ts/3,1),R1);
-R(2*(t_f/Ts/3)+1:2*(2*t_f/Ts/3),1)=kron(ones(t_f/Ts/3,1),R2);
-R(2*(2*t_f/Ts/3)+1:2*(N+t_f/Ts),1)=kron(ones(N+t_f/Ts/3,1),R3);
-inputs = {x,x_s,u_vec,R,v_k,d_k};
-
-
-
-c = [0.5 , 0.5]; rho_Econ = [20, 20]; % Large c makes u small. Large rho large makes V small
-g_u=zeros(2*N,1); g_u(1:2:end) = c(1); g_u(2:2:end) = c(2);
-g_v=zeros(2*N,1); g_v(1:2:end) = rho_Econ(1); g_v(2:2:end) = rho_Econ(2);
-
-
-
-cons_Econ = [g_u g_v];
-
-type = 4; % Economic
-[y,y_nl,u_vec,u_nl] = MPC_Sim(sys,sys_aug,MPC_sys,[],Q_hat,Q_hat_aug,sigma_R,t_f,t_R,Ts,inputs,N,cons,[],cons_Econ,p,type);
-
-t_plot = (1:Ts:t_f)/60;
-R_plot = [ones(t_R/Ts,1)*R1(1)+h_s(1) , ones(t_R/Ts,1)*R1(2)+h_s(2) ;
-               ones(t_R/Ts,1)*R2(1)+h_s(1) , ones(t_R/Ts,1)*R2(2)+h_s(2) ;
-               ones(t_R/Ts,1)*R3(1)+h_s(1) , ones(t_R/Ts,1)*R3(2)+h_s(2)];
-
-
-figure
-subplot (2,1,1); hold on
-plot(t_plot,y(1,:)+h_s(1),'r');plot(t_plot,y_nl(1,:),'--m'); plot(t_plot,R_plot(:,1),'--k'); plot(t_plot,y(2,:)+h_s(2),'b');plot(t_plot,y_nl(2,:),'--g'); plot(t_plot,R_plot(:,2),'-.k')
-hold off; grid on; legend('$h_1$ - Linear','$h_1$ - Nonlinear','$r_1$','$h_2$ - Linear','$h_2$ - Nonlinear','$r_2$','Location','best','Interpreter','Latex'); ylabel('Height $[cm]$','Interpreter','latex')
-subplot (2,1,2); hold on
-plot(t_plot,u_vec(1,:)+u(1),'r');plot(t_plot,u_nl(1,:)+u(1),'--m'); plot(t_plot,u_vec(2,:)+u(2),'b');plot(t_plot,u_nl(2,:)+u(2),'--g'); 
-hold off; grid on; legend('$u_1$ - Linear','$u_1$ - Nonlinear','$u_2$ - Linear','$u_2$ - Nonlinear','Location','best','Interpreter','Latex'); xlabel('Time [min]'), ylabel('Flow $[cm^3/s]$'); ylim([-100 700])
-
-
-
-%% Problem  13 Classical control
-t_f = 1800*2;
-r_1 = zeros(t_f/Ts,1); r_1(end*1/3:end*2/3) = 10; r_1(end*2/3:end+1) = 20;
-r_2 = zeros(t_f/Ts,1); r_2(end*1/3:end*2/3) = 10; r_2(end*2/3:end+1) =  -10;
-r=[r_1';r_2'];
-
-u_min= - 300;
-u_max= 300;
-
-x_P = zeros(4,t_f/Ts+1); x_PI = x_P; x_PID = x_P;
-y_P = zeros(2,t_f/Ts+1); y_PI = y_P; y_PID = y_P;
-u_P = zeros(2,t_f/Ts+1); u_PI = u_P; u_PID = u_P;
- 
-v_k = mvnrnd(zeros(t_f/Ts,size(C_c,1)),eye(2)*sigma_R)';
-d_k = mvnrnd(zeros(t_f/Ts,size(E_c,2)),eye(2)*Rd)';
-
-% P gains
-K_P=[2 0;0 0.2];
-
-% PI gains
-K_PI = [7.5 0; 0 2.5]*0.1;
-Ti = 2000;
-i = [0;0];
-
-% PID gains
- K_PID_P=[2 0;0 2];
- K_PID_I=[5 0; 0 5]*0.001;
- K_PID_D=[100 0; 0 100];
- Ti = 4000;
-  i = [0;0];
-
-for k=1:t_f/Ts
-    if k == 1
-        [u_P(:,k),e_P(:,k)]=P_con(r(:,k),y_P(:,k),u_P(:,k),u_min,u_max,K_P);
-        [u_PI(:,k) e_PI(:,k)] = PI_con(r(:,k),y_PI(:,k),u_PI(:,k),u_min,u_max,K_PI,i,Ts,Ti);
-    else
-        [u_P(:,k),e_P(:,k)]=P_con(r(:,k),y_P(:,k-1),u_P(:,k-1),u_min,u_max,K_P);
-        [u_PI(:,k) e_PI(:,k)] = PI_con(r(:,k),y_PI(:,k-1),u_PI(:,k-1),u_min,u_max,K_PI,i,Ts,Ti);
-    end    
-    
-    if k <= 2
-        [u_PID(:,k) e_PID(:,k)] = PID_con(r(:,k),u_PID(:,k),y_PID(:,k),y_PID(:,k),u_min,u_max,K_PID_P,i,K_PID_I,K_PID_D,Ts);
-    else
-        [u_PID(:,k) e_PID(:,k)] = PID_con(r(:,k),u_PID(:,k-1),y_PID(:,k-1),y_PID(:,k-2),u_min,u_max,K_PID_P,i,K_PID_I,K_PID_D,Ts);
-    end
-
-    x_P(:,k+1)=A_k*x_P(:,k)+B_k*u_P(:,k)+E_k*d_k(:,k);
-    x_PI(:,k+1)=A_k*x_PI(:,k)+B_k*u_PI(:,k)+E_k*d_k(:,k);
-    x_PID(:,k+1)=A_k*x_PID(:,k)+B_k*u_PID(:,k)+E_k*d_k(:,k);
-    
-    y_P(:,k)=C_c*x_P(:,k)+v_k(1:2,k);
-    y_PI(:,k)=C_c*x_PI(:,k)+v_k(1:2,k);
-    y_PID(:,k)=C_c*x_PID(:,k)+v_k(1:2,k);
-    
-end
-
-[u_P(:,t_f/Ts+1),e_P(:,t_f/Ts+1)]=P_con(r(:,t_f/Ts+1),y_P(:,t_f/Ts),u_P(:,t_f/Ts),u_min,u_max,K_P);
-[u_PI(:,t_f/Ts+1) e_PI(:,t_f/Ts+1)] = PI_con(r(:,t_f/Ts+1),y_PI(:,t_f/Ts),u_PI(:,t_f/Ts),u_min,u_max,K_PI,i,Ts,Ti);
-[u_PID(:,t_f/Ts+1) e_PID(:,t_f/Ts+1)] = PID_con(r(:,t_f/Ts+1),u_PID(:,k-1),y_PID(:,t_f/Ts),y_PID(:,t_f/Ts),u_min,u_max,K_PID_P,i,K_PID_I,K_PID_D,Ts);
-
-y_P(:,t_f/Ts+1)=C_c*x_P(:,t_f/Ts+1);
-y_PI(:,t_f/Ts+1)=C_c*x_PI(:,t_f/Ts+1);
-y_PID(:,t_f/Ts+1)=C_c*x_PID(:,t_f/Ts+1);
-
-t_plot = (1:Ts:t_f+1)/60;
-
-figure
-subplot(2,3,1); hold on
-plot(t_plot,y_P(1,:)+h_s(1),'r'); plot(t_plot,r(1,:)+h_s(1),'--k');
-plot(t_plot,y_P(2,:)+h_s(2),'b'); plot(t_plot,r(2,:)+h_s(2),'-.k')
-hold off; grid on; legend('h_1','r_1','h_2','r_2'); ylabel('Outputs'); title('P Controller'); ylim([80 140])
-subplot(2,3,4); hold on
-plot(t_plot,u_P(1,:)+300,'r'); plot(t_plot,u_P(2,:)+300,'b');
-grid on; legend('u_1','u_2'); ylabel('Inputs'); ylim([0 600])
-
-subplot(2,3,2); hold on
-plot(t_plot,y_PI(1,:)+h_s(1),'r'); plot(t_plot,r(1,:)+h_s(1),'--k');
-plot(t_plot,y_PI(2,:)+h_s(2),'b'); plot(t_plot,r(2,:)+h_s(2),'-.k')
-hold off; grid on; ; title('PI Controller'); ylim([80 140])
-subplot(2,3,5); hold on
-plot(t_plot,u_PI(1,:)+300,'r'); plot(t_plot,u_PI(2,:)+300,'b');
-grid on; ; ylim([0 600])
-
-subplot(2,3,3); hold on
-plot(t_plot,y_PID(1,:)+h_s(1),'r'); plot(t_plot,r(1,:)+h_s(1),'--k');
-plot(t_plot,y_PID(2,:)+h_s(2),'b'); plot(t_plot,r(2,:)+h_s(2),'-.k')
-hold off; grid on; title('PID Controller'); ylim([80 140])
-subplot(2,3,6); hold on
-plot(t_plot,u_PID(1,:)+300,'r'); plot(t_plot,u_PID(2,:)+300,'b');
-grid on; ; ylim([0 600])
-
+% %% Problem 12 Economic MPC
+% ub_c = F_in(1,1,1)-150; ub = ub_c*ones(2*N,1);
+% lb_c = -F_in(1,1,1); lb = lb_c*ones(2*N,1);
+% u_rate = 100*ones(2*N,1);   % maximum rate  of change
+% l_rate = -50*ones(2*N,1);  % minimum rate of change
+% Ubar=kron(ones(N,1),[0;0]);
+% cons = {lb,ub,l_rate,u_rate}; % Constraints
+% 
+% t_f = 1800; % 30 minutes
+% v_k = mvnrnd(zeros(t_f/Ts,size(C_c,1)),eye(2)*sigma_R)';
+% d_k = mvnrnd(zeros(t_f/Ts,size(E_c,2)),eye(2)*Rd)';
+% x = zeros(4,t_f/Ts+1);
+% u_vec = zeros(2,t_f/Ts+1);
+% R1 = [0 ; 0];
+% R2 = [10 ; 10];
+% R3 = [20 ;-10];
+% R=zeros(2*(N+t_f/Ts),1);
+% R(1:2*(t_f/Ts/3),1)=kron(ones(t_f/Ts/3,1),R1);
+% R(2*(t_f/Ts/3)+1:2*(2*t_f/Ts/3),1)=kron(ones(t_f/Ts/3,1),R2);
+% R(2*(2*t_f/Ts/3)+1:2*(N+t_f/Ts),1)=kron(ones(N+t_f/Ts/3,1),R3);
+% inputs = {x,x_s,u_vec,R,v_k,d_k};
+% 
+% 
+% 
+% c = [0.5 , 0.5]; rho_Econ = [20, 20]; % Large c makes u small. Large rho large makes V small
+% g_u=zeros(2*N,1); g_u(1:2:end) = c(1); g_u(2:2:end) = c(2);
+% g_v=zeros(2*N,1); g_v(1:2:end) = rho_Econ(1); g_v(2:2:end) = rho_Econ(2);
+% 
+% 
+% 
+% cons_Econ = [g_u g_v];
+% 
+% type = 4; % Economic
+% [y,y_nl,u_vec,u_nl] = MPC_Sim(sys,sys_aug,MPC_sys,[],Q_hat,Q_hat_aug,sigma_R,t_f,t_R,Ts,inputs,N,cons,[],cons_Econ,p,type);
+% 
+% t_plot = (1:Ts:t_f)/60;
+% R_plot = [ones(t_R/Ts,1)*R1(1)+h_s(1) , ones(t_R/Ts,1)*R1(2)+h_s(2) ;
+%                ones(t_R/Ts,1)*R2(1)+h_s(1) , ones(t_R/Ts,1)*R2(2)+h_s(2) ;
+%                ones(t_R/Ts,1)*R3(1)+h_s(1) , ones(t_R/Ts,1)*R3(2)+h_s(2)];
+% 
+% 
+% figure
+% subplot (2,1,1); hold on
+% plot(t_plot,y(1,:)+h_s(1),'r');plot(t_plot,y_nl(1,:),'--m'); plot(t_plot,R_plot(:,1),'--k'); plot(t_plot,y(2,:)+h_s(2),'b');plot(t_plot,y_nl(2,:),'--g'); plot(t_plot,R_plot(:,2),'-.k')
+% hold off; grid on; legend('$h_1$ - Linear','$h_1$ - Nonlinear','$r_1$','$h_2$ - Linear','$h_2$ - Nonlinear','$r_2$','Location','best','Interpreter','Latex'); ylabel('Height $[cm]$','Interpreter','latex')
+% subplot (2,1,2); hold on
+% plot(t_plot,u_vec(1,:)+u(1),'r');plot(t_plot,u_nl(1,:)+u(1),'--m'); plot(t_plot,u_vec(2,:)+u(2),'b');plot(t_plot,u_nl(2,:)+u(2),'--g'); 
+% hold off; grid on; legend('$u_1$ - Linear','$u_1$ - Nonlinear','$u_2$ - Linear','$u_2$ - Nonlinear','Location','best','Interpreter','Latex'); xlabel('Time [min]'), ylabel('Flow $[cm^3/s]$'); ylim([-100 700])
+% 
+% 
+% 
+% %% Problem  13 Classical control
+% t_f = 1800*2;
+% r_1 = zeros(t_f/Ts,1); r_1(end*1/3:end*2/3) = 10; r_1(end*2/3:end+1) = 20;
+% r_2 = zeros(t_f/Ts,1); r_2(end*1/3:end*2/3) = 10; r_2(end*2/3:end+1) =  -10;
+% r=[r_1';r_2'];
+% 
+% u_min= - 300;
+% u_max= 300;
+% 
+% x_P = zeros(4,t_f/Ts+1); x_PI = x_P; x_PID = x_P;
+% y_P = zeros(2,t_f/Ts+1); y_PI = y_P; y_PID = y_P;
+% u_P = zeros(2,t_f/Ts+1); u_PI = u_P; u_PID = u_P;
+% 
+% v_k = mvnrnd(zeros(t_f/Ts,size(C_c,1)),eye(2)*sigma_R)';
+% d_k = mvnrnd(zeros(t_f/Ts,size(E_c,2)),eye(2)*Rd)';
+% 
+% % P gains
+% K_P=[2 0;0 0.2];
+% 
+% % PI gains
+% K_PI = [7.5 0; 0 2.5]*0.1;
+% Ti = 2000;
+% i = [0;0];
+% 
+% % PID gains
+%  K_PID_P=[2 0;0 2];
+%  K_PID_I=[5 0; 0 5]*0.001;
+%  K_PID_D=[100 0; 0 100];
+%  Ti = 4000;
+%   i = [0;0];
+% 
+% for k=1:t_f/Ts
+%     if k == 1
+%         [u_P(:,k),e_P(:,k)]=P_con(r(:,k),y_P(:,k),u_P(:,k),u_min,u_max,K_P);
+%         [u_PI(:,k) e_PI(:,k)] = PI_con(r(:,k),y_PI(:,k),u_PI(:,k),u_min,u_max,K_PI,i,Ts,Ti);
+%     else
+%         [u_P(:,k),e_P(:,k)]=P_con(r(:,k),y_P(:,k-1),u_P(:,k-1),u_min,u_max,K_P);
+%         [u_PI(:,k) e_PI(:,k)] = PI_con(r(:,k),y_PI(:,k-1),u_PI(:,k-1),u_min,u_max,K_PI,i,Ts,Ti);
+%     end    
+% 
+%     if k <= 2
+%         [u_PID(:,k) e_PID(:,k)] = PID_con(r(:,k),u_PID(:,k),y_PID(:,k),y_PID(:,k),u_min,u_max,K_PID_P,i,K_PID_I,K_PID_D,Ts);
+%     else
+%         [u_PID(:,k) e_PID(:,k)] = PID_con(r(:,k),u_PID(:,k-1),y_PID(:,k-1),y_PID(:,k-2),u_min,u_max,K_PID_P,i,K_PID_I,K_PID_D,Ts);
+%     end
+% 
+%     x_P(:,k+1)=A_k*x_P(:,k)+B_k*u_P(:,k)+E_k*d_k(:,k);
+%     x_PI(:,k+1)=A_k*x_PI(:,k)+B_k*u_PI(:,k)+E_k*d_k(:,k);
+%     x_PID(:,k+1)=A_k*x_PID(:,k)+B_k*u_PID(:,k)+E_k*d_k(:,k);
+% 
+%     y_P(:,k)=C_c*x_P(:,k)+v_k(1:2,k);
+%     y_PI(:,k)=C_c*x_PI(:,k)+v_k(1:2,k);
+%     y_PID(:,k)=C_c*x_PID(:,k)+v_k(1:2,k);
+% 
+% end
+% 
+% [u_P(:,t_f/Ts+1),e_P(:,t_f/Ts+1)]=P_con(r(:,t_f/Ts+1),y_P(:,t_f/Ts),u_P(:,t_f/Ts),u_min,u_max,K_P);
+% [u_PI(:,t_f/Ts+1) e_PI(:,t_f/Ts+1)] = PI_con(r(:,t_f/Ts+1),y_PI(:,t_f/Ts),u_PI(:,t_f/Ts),u_min,u_max,K_PI,i,Ts,Ti);
+% [u_PID(:,t_f/Ts+1) e_PID(:,t_f/Ts+1)] = PID_con(r(:,t_f/Ts+1),u_PID(:,k-1),y_PID(:,t_f/Ts),y_PID(:,t_f/Ts),u_min,u_max,K_PID_P,i,K_PID_I,K_PID_D,Ts);
+% 
+% y_P(:,t_f/Ts+1)=C_c*x_P(:,t_f/Ts+1);
+% y_PI(:,t_f/Ts+1)=C_c*x_PI(:,t_f/Ts+1);
+% y_PID(:,t_f/Ts+1)=C_c*x_PID(:,t_f/Ts+1);
+% 
+% t_plot = (1:Ts:t_f+1)/60;
+% 
+% figure
+% subplot(2,3,1); hold on
+% plot(t_plot,y_P(1,:)+h_s(1),'r'); plot(t_plot,r(1,:)+h_s(1),'--k');
+% plot(t_plot,y_P(2,:)+h_s(2),'b'); plot(t_plot,r(2,:)+h_s(2),'-.k')
+% hold off; grid on; legend('h_1','r_1','h_2','r_2'); ylabel('Outputs'); title('P Controller'); ylim([80 140])
+% subplot(2,3,4); hold on
+% plot(t_plot,u_P(1,:)+300,'r'); plot(t_plot,u_P(2,:)+300,'b');
+% grid on; legend('u_1','u_2'); ylabel('Inputs'); ylim([0 600])
+% 
+% subplot(2,3,2); hold on
+% plot(t_plot,y_PI(1,:)+h_s(1),'r'); plot(t_plot,r(1,:)+h_s(1),'--k');
+% plot(t_plot,y_PI(2,:)+h_s(2),'b'); plot(t_plot,r(2,:)+h_s(2),'-.k')
+% hold off; grid on; ; title('PI Controller'); ylim([80 140])
+% subplot(2,3,5); hold on
+% plot(t_plot,u_PI(1,:)+300,'r'); plot(t_plot,u_PI(2,:)+300,'b');
+% grid on; ; ylim([0 600])
+% 
+% subplot(2,3,3); hold on
+% plot(t_plot,y_PID(1,:)+h_s(1),'r'); plot(t_plot,r(1,:)+h_s(1),'--k');
+% plot(t_plot,y_PID(2,:)+h_s(2),'b'); plot(t_plot,r(2,:)+h_s(2),'-.k')
+% hold off; grid on; title('PID Controller'); ylim([80 140])
+% subplot(2,3,6); hold on
+% plot(t_plot,u_PID(1,:)+300,'r'); plot(t_plot,u_PID(2,:)+300,'b');
+% grid on; ; ylim([0 600])
+% 
 %% Functions
 
 function xdot = FourTankSystem(t,x,u,p)
@@ -1162,7 +1162,7 @@ for i = 1:t_f/Ts
     if i == 1 % ONLY FIRST ITERATION
         if type == 1 % UNCONSTRAINED
             u_mpc = Uncon_MPC(MPC_sys,x_hat(1:4,i),R(1:2*N,1),u(:,i));
-            u_mpc_nl = Uncon_MPC(MPC_sys,x_hat_nl(1:4,i),R(1:2*N,1),u_nl(:,i));
+            u_mpc_nl = Uncon_MPC(MPC_sys,x_hat_nl(1:4,i),R(1:2*N,1),u_nl(:,i));MPC_sys
         elseif type ==2 % INPUT CONSTRAINED
             u_mpc = U_con_MPC(MPC_sys,x_hat(1:4,i),R(1:2*N,1),u(:,i),cons);
             u_mpc_nl = U_con_MPC(MPC_sys,x_hat_nl(1:4,i),R(1:2*N,1),u_nl(:,i),cons);
@@ -1245,7 +1245,8 @@ function MPC_sys = MPCDesign(sys,Q,S,N)
     M_x0 = transpose(Gamma)*Q_z*phi;
     M_r = -transpose(Gamma)*Q_z;
     M_d  = transpose(Gamma)*Q_z*Gamma_d;
-    M_u1 = zeros(size(M_d,1),size(S,1)); M_u1(1:size(S,1),1:size(S,1)) = -S;
+    M_u1 = zeros(size(M_d,1),size(S,1)); 
+    M_u1(1:size(S,1),1:size(S,1)) = -S;
 
     % Now we determine the bounds on the input according to
     % "Lecture_07C_MPC" slide 18
