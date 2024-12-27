@@ -31,7 +31,7 @@ tf = 60*20;                 % [s] End time (20 minutes)
 dt = 1;                    % [s] Time step size
 N = tf/dt;                  % Total number of steps
 t = t0:dt:tf;               % [s] Time vector
-Ph = 20;                    % Prediction horizon for MPC  
+Ph = 40;                    % Prediction horizon for MPC  
 
 % Initial flow rates [cm^3/s]
 F1_0 = 300;                 % Pump flow rate 1
@@ -96,8 +96,8 @@ umin = 0;
 umax = 500;
 Umin = repmat(umin - u0,2*Ph,1);
 Umax = repmat(umax - u0,2*Ph,1);
-lb_rate = repmat(-10,2*Ph,1);  % minimum rate of change
-ub_rate = repmat(10,2*Ph,1);   % maximum rate  of change
+lb_rate = repmat(-20,2*Ph,1);  % minimum rate of change
+ub_rate = repmat(20,2*Ph,1);   % maximum rate  of change
 
 
 %setting up system
