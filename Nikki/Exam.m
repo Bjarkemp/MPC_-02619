@@ -662,57 +662,57 @@ subplot (2,1,2); hold on
 plot(t_plot,u_vec(1,:)+u(1),'r');plot(t_plot,u_nl(1,:)+u(1),'--m'); plot(t_plot,u_vec(2,:)+u(2),'b');plot(t_plot,u_nl(2,:)+u(2),'--g'); yline(ub_c+300,'--k','LineWidth',2); yline(lb_c+300,'--k','LineWidth',2);
 hold off; grid on; legend('u_1','u_1 - Nonlinear','u_2','u_2 - Nonlinear','Location','best'); xlabel('Time [min]'), ylabel('Flow $[cm^3/s]$'); ylim([-100 700])
 
-% 
-% %% Problem 9 Hard input soft output constrained MPC
-% W_z = 100*eye(2);
-% W_u = 0*eye(2);
-% W_du = 0*eye(2);
-% W = [W_z W_u W_du];
-% 
-% % Boundaries
-% W_t1 = 10000*eye(2);
-% W_t2 = 10000*eye(2);
-% W_s1 = 10000*eye(2);
-% W_s2 = 10000*eye(2);
-% soft_cons = {W_t1,W_t2,W_s1,W_s2};
-% 
-% MPC_sys_soft = Soft_MPCDesign(sys,MPC_sys,N,W,soft_cons);
-% 
-% % Boundaries Inputs
-% U_bar = kron(ones(N,1),[0;0]);
-% ub_c = F_in(1,1,1)-150; U_max = ub_c*ones(2*N,1);
-% lb_c = -F_in(1,1,1); U_min = lb_c*ones(2*N,1);
-% 
-% % Boundaries input deviation
-% D_u_min = kron(ones(N,1),[-10;-10]);
-% D_u_max = kron(ones(N,1),[10;10]);
-% 
-% % Boundaries output
-% Z_max = kron(ones(N,1),[110-h_s(1);120-h_s(2)]);
-% Z_min = kron(ones(N,1),[85-h_s(1);105-h_s(2)]);
-% 
-% cons_InOut = {U_bar,U_min,U_max,D_u_min,D_u_max,Z_max,Z_min};
-% 
-% x = zeros(4,t_f/Ts+1); 
-% u_vec = zeros(2,t_f/Ts+1);
-% inputs = {x,x_s,u_vec,R,v_k,d_k};
-% type = 3; % Input/Output constrained MPC
-% [y,y_nl,u_vec,u_nl] = MPC_Sim(sys,sys_aug,MPC_sys,MPC_sys_soft,Q_hat,Q_hat_aug,sigma_R,t_f,t_R,Ts,inputs,N,cons,cons_InOut,[],p,type);
-% 
-% figure
-% subplot (2,2,1); hold on
-% plot(t_plot,y(1,:)+h_s(1),'r');plot(t_plot,y_nl(1,:),'--b'); plot(t_plot,R_plot(:,1),'--k'); yline(Z_max(1,1)+h_s(1),'--m','LineWidth',2); yline(Z_min(1,1)+h_s(1),'--m','LineWidth',2);
-% hold off; grid on; legend('Linear','Nonlinear','r','Bounds','Location','best','Interpreter','latex'); ylabel('Height $[cm]$','Interpreter','latex'); ylim([80 130])
-% subplot(2,2,2); hold on
-% plot(t_plot,y(2,:)+h_s(2),'r');plot(t_plot,y_nl(2,:),'--b'); plot(t_plot,R_plot(:,2),'-.k'); yline(Z_max(2,1)+h_s(2),'--m','LineWidth',2); yline(Z_min(2,1)+h_s(2),'--m','LineWidth',2);
-% hold off; grid on; ylabel('Height $[cm]$','Interpreter','latex');ylim([80 130])
-% subplot (2,2,3); hold on
-% plot(t_plot,u_vec(1,:)+u(1),'r');plot(t_plot,u_nl(1,:)+u(1),'--b'); yline(ub_c+300,'--k','LineWidth',2); yline(lb_c+300,'--k','LineWidth',2);yline(ub_c+300,'--k','LineWidth',2); yline(lb_c+300,'--k','LineWidth',2);
-% hold off; grid on; legend('Linear','Nonlinear','Bounds','Location','best','Interpreter','latex'); xlabel('Time [min]'), ylabel('Flow $[cm^3/s]$'); ylim([-100 700])
-% subplot (2,2,4); hold on
-% plot(t_plot,u_vec(2,:)+u(2),'r');plot(t_plot,u_nl(2,:)+u(2),'--b'); yline(ub_c+300,'--k','LineWidth',2); yline(lb_c+300,'--k','LineWidth',2);yline(ub_c+300,'--k','LineWidth',2); yline(lb_c+300,'--k','LineWidth',2);
-% hold off; grid on;  xlabel('Time [min]'), ylabel('Flow $[cm^3/s]$'); ylim([-100 700])
-% 
+
+%% Problem 9 Hard input soft output constrained MPC
+W_z = 100*eye(2);
+W_u = 0*eye(2);
+W_du = 0*eye(2);
+W = [W_z W_u W_du];
+
+% Boundaries
+W_t1 = 10000*eye(2);
+W_t2 = 10000*eye(2);
+W_s1 = 10000*eye(2);
+W_s2 = 10000*eye(2);
+soft_cons = {W_t1,W_t2,W_s1,W_s2};
+
+MPC_sys_soft = Soft_MPCDesign(sys,MPC_sys,N,W,soft_cons);
+
+% Boundaries Inputs
+U_bar = kron(ones(N,1),[0;0]);
+ub_c = F_in(1,1,1)-150; U_max = ub_c*ones(2*N,1);
+lb_c = -F_in(1,1,1); U_min = lb_c*ones(2*N,1);
+
+% Boundaries input deviation
+D_u_min = kron(ones(N,1),[-10;-10]);
+D_u_max = kron(ones(N,1),[10;10]);
+
+% Boundaries output
+Z_max = kron(ones(N,1),[110-h_s(1);120-h_s(2)]);
+Z_min = kron(ones(N,1),[85-h_s(1);105-h_s(2)]);
+
+cons_InOut = {U_bar,U_min,U_max,D_u_min,D_u_max,Z_max,Z_min};
+
+x = zeros(4,t_f/Ts+1); 
+u_vec = zeros(2,t_f/Ts+1);
+inputs = {x,x_s,u_vec,R,v_k,d_k};
+type = 3; % Input/Output constrained MPC
+[y,y_nl,u_vec,u_nl] = MPC_Sim(sys,sys_aug,MPC_sys,MPC_sys_soft,Q_hat,Q_hat_aug,sigma_R,t_f,t_R,Ts,inputs,N,cons,cons_InOut,[],p,type);
+
+figure
+subplot (2,2,1); hold on
+plot(t_plot,y(1,:)+h_s(1),'r');plot(t_plot,y_nl(1,:),'--b'); plot(t_plot,R_plot(:,1),'--k'); yline(Z_max(1,1)+h_s(1),'--m','LineWidth',2); yline(Z_min(1,1)+h_s(1),'--m','LineWidth',2);
+hold off; grid on; legend('Linear','Nonlinear','r','Bounds','Location','best','Interpreter','latex'); ylabel('Height $[cm]$','Interpreter','latex'); ylim([80 130])
+subplot(2,2,2); hold on
+plot(t_plot,y(2,:)+h_s(2),'r');plot(t_plot,y_nl(2,:),'--b'); plot(t_plot,R_plot(:,2),'-.k'); yline(Z_max(2,1)+h_s(2),'--m','LineWidth',2); yline(Z_min(2,1)+h_s(2),'--m','LineWidth',2);
+hold off; grid on; ylabel('Height $[cm]$','Interpreter','latex');ylim([80 130])
+subplot (2,2,3); hold on
+plot(t_plot,u_vec(1,:)+u(1),'r');plot(t_plot,u_nl(1,:)+u(1),'--b'); yline(ub_c+300,'--k','LineWidth',2); yline(lb_c+300,'--k','LineWidth',2);yline(ub_c+300,'--k','LineWidth',2); yline(lb_c+300,'--k','LineWidth',2);
+hold off; grid on; legend('Linear','Nonlinear','Bounds','Location','best','Interpreter','latex'); xlabel('Time [min]'), ylabel('Flow $[cm^3/s]$'); ylim([-100 700])
+subplot (2,2,4); hold on
+plot(t_plot,u_vec(2,:)+u(2),'r');plot(t_plot,u_nl(2,:)+u(2),'--b'); yline(ub_c+300,'--k','LineWidth',2); yline(lb_c+300,'--k','LineWidth',2);yline(ub_c+300,'--k','LineWidth',2); yline(lb_c+300,'--k','LineWidth',2);
+hold off; grid on;  xlabel('Time [min]'), ylabel('Flow $[cm^3/s]$'); ylim([-100 700])
+
 % %% Problem 11 Nonlinear MPC
 % t_f = 1800;
 % t = 0:Ts:t_f;
