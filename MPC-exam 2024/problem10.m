@@ -1,7 +1,7 @@
 clc, clear, close all
 addpath("Functions"); % Add the "Functions" folder to the MATLAB path
 
-% Problem 9 - input constraints
+% Problem 10 - soft output constraints
 % ----------------------------------------------------------
 % Parameters
 % ----------------------------------------------------------
