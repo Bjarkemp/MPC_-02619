@@ -88,7 +88,7 @@ Gw_aug = [Gw, zeros(4,2); zeros(2,4), eye(2)];
 % Design MPC
 % -----------------------------------------------------------
 sys = ss(Ad, Bd, C(1:2,:), D(:,1:2)); % Discrete-time state-space system
-Qz = 300 * eye(size(sys.C, 1));% Weight for output tracking
+Qz = 100 * eye(size(sys.C, 1));% Weight for output tracking
 S = 1 * eye(size(sys.B, 2));    % Weight for control effort
 
 %Constraints umin =< u =< umax !IN DEVIATION VARIABLES!
