@@ -61,7 +61,7 @@ R = [1^2 0 0 0; 0 1^2 0 0; 0 0 0.5^2 0; 0 0 0 0.5^2];     % Covariance for measu
 [A_stoch, B_stoch, C_stoch, G_stoch, Gw_stoch] = linearized_models(xs, At, at, rho, gamma1, gamma2, g, ...
                                                                   'stochastic', [], [], R);
 %Stochastic Brownian
-sigma = [2^2 0; 0 2^2]; 
+sigma = [1^2 0; 0 1^2]; 
 [A_brownian, B_brownian, C_brownian, G_brownian, Gw_brownian] = linearized_models(xs, At, at, rho, gamma1, gamma2, g, ...
                                                                                 'brownian', d0, sigma, R);
 %%  -------------------- 5.2 Transfer functions ------------------------------

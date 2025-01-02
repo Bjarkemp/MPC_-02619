@@ -97,7 +97,7 @@ Ns = length(d0); % Number of realizations
 seed = 100;
 [W,t,dW] = ScalarStdWienerProcess(tf,N,Ns,seed);
 
-sigma = [1^2 0; 0 1^2];                             % Covariance for disturbances in F3 and F4
+sigma = [2^2 0; 0 2^2];                             % Covariance for disturbances in F3 and F4
 d_brownian = d0 + sigma*dW';  
 
 
@@ -117,7 +117,8 @@ xlabel('t [min]', 'FontSize', 10);
 ylabel('cm^{3}/s', 'FontSize', 10);
 xlim([0 t(end)/60]);
 legend('F_3', 'F_4', 'Location', 'best');
-title(['Sensor Measurements of Disturbances'], 'FontSize', 10);
+title(['Sampling time of ', ...
+    num2str(dt), ' s with normal distributed disturbance'], 'FontSize', 10);
 %-------------------------------------------------------------------------
 
 %---------Figure showing disturbance d1 and d2 in Continuous-time--------
@@ -127,21 +128,19 @@ xlabel('\textbf{t [min]}', 'FontSize', 10, 'Interpreter', 'latex');
 ylabel('[cm^{3}/s]', 'FontSize', 10);
 xlim([0 T(end)/60]);
 legend('F_3', 'F_4', 'Location', 'best');
-title(['Piecewise Constant Representation of Disturbances Over ' ...
-    'Continuous Time'], 'FontSize', 10);
+title('Piece wise constant disturbance that follows Brownian motion', ...
+    'FontSize', 10);
 set(gcf, 'Color', 'w');
+close all
+R = [1^2 0 0 0; 0 1^2 0 0; 0 0 0.5^2 0; 0 0 0 0.5^2];     % Covariance for disturbances in F3 and F4
+
+d0 = [0; 0;];
+d = d0.*ones(2, length(t));
 
 
-% close all
-% R = [1^2 0 0 0; 0 1^2 0 0; 0 0 0.5^2 0; 0 0 0 0.5^2];     % Covariance for disturbances in F3 and F4
-% 
-% d0 = [0; 0;];
-% d = d0.*ones(2, length(t));
-% 
-% 
-% [T, X, D, U, x_step] = discrete_fourtankProcess(x0, t, u, d, p);
-% [y_step1] = sensor_wo_noise(x_step, At, rho);
-% plots(t,u,y_step1')
-% [y_step2] = sensor_plus_noise(x_step, At, rho, R);
-% plots(t,u,y_step2')
+[T, X, D, U, x_step] = discrete_fourtankProcess(x0, t, u, d, p);
+[y_step1] = sensor_wo_noise(x_step, At, rho);
+plots(t,u,y_step1')
+[y_step2] = sensor_plus_noise(x_step, At, rho, R);
+plots(t,u,y_step2')
 

@@ -58,7 +58,7 @@ xs = fsolve(@FourTankSystemWrap,x0,[],u0,d0,p);    % Løser differentiallignings
 Ns = length(d0); % Number of realizations
 seed = 10;
 [W,t,dW] = ScalarStdWienerProcess(tf,N,Ns,seed);
-sigma = [2^2 0; 0 2^2];                             % Covariance for disturbances in F3 and F4
+sigma = [1^2 0; 0 1^2];                             % Covariance for disturbances in F3 and F4
 % d = d0 + sigma*dW'; 
 % d = [130*ones(1,length(t));190*ones(1,length(t))];
 

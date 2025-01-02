@@ -60,7 +60,7 @@ y0 = sensor_wo_noise(x0', At, rho);
 Ns = length(d0);            % Number of realizations for disturbances
 seed = 10;                  % Random seed for repeatability
 [W, t, dW] = ScalarStdWienerProcess(tf, N, Ns, seed); % Generate Wiener process
-sigma = [2^2 0; 0 2^2];     % Covariance matrix for disturbances
+sigma = [1^2 0; 0 1^2];     % Covariance matrix for disturbances
 d_k = d0 + sigma * dW';     % Final disturbance vector
 
 %% -----------------------------------------------------------
