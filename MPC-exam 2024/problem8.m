@@ -100,7 +100,7 @@ ref_traj = reshape(Rsp(:, 1:min(1+Ph-1, end)), [], 1);
 Ns = length(d0); % Number of realizations
 seed = 10;
 [W,t,dW] = ScalarStdWienerProcess(tf,N,Ns,seed);
-sigma = [2^2 0; 0 2^2];                             % Covariance for disturbances in F3 and F4
+sigma = [1^2 0; 0 1^2];                             % Covariance for disturbances in F3 and F4
 d_k = d0 + sigma*dW';
 
 
