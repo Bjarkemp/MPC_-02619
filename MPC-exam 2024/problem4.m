@@ -31,17 +31,15 @@ tf= 20*60;                  % [s] End time
 dt = 1;                    % [s] interval between each step
 N = tf/dt;                  % Number of steps 
 t = t0:dt:tf;               % [s] time-vector
-m10 = 17612.0123864868;                    % [g] Liquid mass in tank 1 at time t0
-m20 = 29640.6694933624;                    % [g] Liquid mass in tank 2 at time t0
-m30 = 4644.21948249842;                    % [g] Liquid mass in tank 3 at time t0
-m40 = 9378.49308238599;                    % [g] Liquid mass in tank 4 at time t0
 F1_0 = 300;                 % [cm3/s] Flow rate from pump 1
 F2_0 = 300;                 % [cm3/s] Flow rate from pump 2
 F3_0 = 100;
 F4_0 = 150;
-x0 = [m10; m20; m30; m40];    % [g] Start values 
 u0 = [F1_0; F2_0];            % [cm3/s] Manipulated variables 
 d0 = [F3_0; F4_0;];           % [cm3/s] Disturbance variables at t0
+% Initial tank masses [g]
+xs0 = [5000; 5000; 5000; 5000]; % [g] Initial guess on xs
+x0 = fsolve(@FourTankSystemWrap,xs0,[],u0,d0,p);
 d = d0.*ones(2, length(t));
 u = u0.*ones(2, length(t));
 [y0] = sensor_wo_noise(x0', At, rho);
@@ -640,16 +638,6 @@ xs = fsolve(@FourTankSystemWrap,x0,[],u0,d0,p);    % Løser differentiallignings
 % (QuadrupleTankProcess) og solver hvad x er når hældningen er 0. Dvs. at
 % den beregner hvad masserne er når der opnås steady state i tankene.
 
-%%
-%genrate transfer functions for 1st order system
-sys1 = tfest(udev',ydev(1:2,:)',2)
-% sys = tfest(udev',ydev',1,'Ts',dt);
-% sys_continuous = d2c(sys)
-
-%generate transfer fucktions for 2nd order system
-sys2 = tfest(udev',ydev(1:2,:)',2)
-% sys = tfest(udev',ydev',1,'Ts',dt);
-% sys_continuous = d2c(sys)
 
 %% state space model
 % sec 1.9 in "LinearModelPredictiveControlToolbox"
@@ -696,10 +684,10 @@ bY22 = cell2mat(numerators22(1,2));
 % C22 = 1;
 
 %discretization of system
-[Ad11,Bd11]=c2dzoh(A11,B11,dt);
-[Ad12,Bd12]=c2dzoh(A12,B12,dt);
-[Ad21,Bd21]=c2dzoh(A21,B21,dt);
-[Ad22,Bd22]=c2dzoh(A22,B22,dt);
+[Ad11,Bd11]=c2dzoh1(A11,B11,dt)
+[Ad12,Bd12]=c2dzoh1(A12,B12,dt)
+[Ad21,Bd21]=c2dzoh1(A21,B21,dt)
+[Ad22,Bd22]=c2dzoh1(A22,B22,dt)
 
 % Initialize the Hankel matrix for D values
 H_start = [D11, D12; D21, D22]; 
@@ -768,3 +756,5 @@ legend('u_1 \rightarrow y_1', 'u_1 \rightarrow y_2', 'u_2 \rightarrow y_1', 'u_2
 xlabel('Time [min]', 'FontSize', 12, 'FontWeight', 'bold');
 ylabel('Height [cm]', 'FontSize', 12, 'FontWeight', 'bold'); 
 title('Response of System Outputs to Inputs', 'FontSize', 14, 'FontWeight', 'bold'); 
+
+saveas(gcf,fullfile('C:\Users\bjark\OneDrive\Skrivebord\MPC_-02619\MPC-exam 2024\Plots','problem4karkov.png'),'png')
