@@ -16,7 +16,6 @@ T_tot = [];
 
 % Initialize controller terms
 i = [0; 0];                         % Integral term
-d_term = [0; 0];                    % Derivative term
 e_prev = [0; 0];                    % Previous error for derivative action
 dt = (t(end)-t(1))/N;               % Time step size
 
@@ -32,15 +31,11 @@ for k = 1:N
     z = x(1:2)';
 
     % ---- PID Controller Calculation --------------------------------------
-    e = r - z;                     % Calculate control error
-    % Update integral term
-    i = i + (Kc * dt / tau_i) * e; 
-    % Update derivative term
-    d_term = (Kc * tau_d / dt) * (e - e_prev); 
-    
-    v = u0 + Kc * e + i + d_term; % Compute control input using PID law
-    % Apply input constraints
-    uk = max(umin, min(umax, v));  
+    e = r(:,k) - z;                            % Compute control error
+    i = i + (Kc * dt / tau_i) * e;             % Update integral term
+    d_term = (Kc * tau_d / dt) * (e - e_prev); % Update derivative term  
+    v = u0 + Kc * e + i + d_term;              % Apply PI control law
+    uk = max(umin, min(umax, v));              % Apply input constraints
     % ----------------------------------------------------------------------
     
     % Update control input and store results

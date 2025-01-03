@@ -1,4 +1,4 @@
-clc, clear, close all
+clc, clear, %close all
 addpath("Functions");
 
 % Problem 3
@@ -27,7 +27,7 @@ At = p(5:8);                % [cm2] Cross sectional area
 % Simulation scenario
 % -----------------------------------------------------------
 t0 = 0.0;                   % [s] Initial time
-tf= 30*60;                  % [s] End time
+tf= 40*60;                  % [s] End time
 dt = 10;                    % [s] interval between each step
 N = tf/dt;                  % Number of steps 
 t = t0:dt:tf;               % [s] time-vector
@@ -55,7 +55,7 @@ umax = [500; 500]; % [cm3/s] Manipulated variables
 
 h_sp = [25; 30];              % [cm] Setpoint as heigt in tank 1 and tank 2
 h_sp_vector = h_sp.*ones(2,length(t));
-h_sp_vector(:,80:end) = h_sp_vector(:,80:end)*1.5;
+h_sp_vector(:,90:end) = h_sp_vector(:,90:end)*1.5;
 r = h_sp_vector.*(rho * At(1:2));    % [g] Setpoint as mass in tank 1 and tank 2
 
 %% 2 P-controllers with exactly the same parameters
@@ -258,13 +258,12 @@ end
 % Plot flow rates
 figure(9);
 for i = 1:2
-    subplot(1, 2, i);
+    subplot(2, 1, i);
     plot(t/60, U1(i,:),'g', t/60, U2(i,:),'r', t/60, U3(i,:),'b', 'LineWidth', 2);
     xlabel('t [min]', 'FontSize', 10);
     ylabel('[cm^3/s]', 'FontSize', 10);
     xlim([0 t(end)/60])
     ylim([0 500]);
     title(['F_', num2str(i)], 'FontSize', 10);
-    legend('P-Control','PI-Control','PID-Control', 'Location', 'best');
-    sgtitle('Manipulated variables', 'FontSize', 12, 'FontWeight', 'bold');
+    legend('P-Control','PI-Control','PID-Control'], 'Setpoint', 'Location', 'best');
 end

@@ -30,10 +30,10 @@ for k = 1:N
     z = x(1:2)';                 % Update measured output
     
     % ------ PI Controller -------------------------------------------------
-    e = r - z;                          % Compute control error
+    e = r(:,k) - z;                     % Compute control error
     i = i + (Kc * dt / tau_i) * e;      % Update integral term
     v = u0 + Kc * e + i;                % Apply PI control law
-    uk = max(umin, min(umax, v));       % Apply input saturation
+    uk = max(umin, min(umax, v));       % Apply input constraints
     % ----------------------------------------------------------------------
     
     % Update input and store data

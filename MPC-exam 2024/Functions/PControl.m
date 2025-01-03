@@ -23,12 +23,12 @@ for k = 1:N
     % Update and store the last state
     X(:,k+1) = xk(end,:);       
     x = xk(end,:);             
-    z = x(1:2)';                % Update measured output
+    z = x(1:2)';                      % Update measured output
     
     % ------ P-Controller ---------------------------------------------------
-    e = r - z;                   % Compute control error
-    v = u0 + Kc * e;             % Apply P control law
-    uk = max(umin, min(umax, v)); % Apply input saturation
+    e = r(:,k) - z;                   % Compute control error
+    v = u0 + Kc * e;                  % Apply P control law
+    uk = max(umin, min(umax, v));     % Apply input constraints
     % ----------------------------------------------------------------------
     
     % Update input and store data
