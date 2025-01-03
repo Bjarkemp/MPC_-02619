@@ -142,3 +142,5 @@ legend('u_1 \rightarrow y_1', 'u_1 \rightarrow y_2', 'u_2 \rightarrow y_1', 'u_2
 xlabel('Time [min]', 'FontSize', 12, 'FontWeight', 'bold');
 ylabel('Height [cm]', 'FontSize', 12, 'FontWeight', 'bold'); 
 title('Response of System Outputs to Inputs', 'FontSize', 14, 'FontWeight', 'bold');
+
+saveas(gcf,fullfile('C:\Users\bjark\OneDrive\Skrivebord\MPC_-02619\MPC-exam 2024\Plots','problem5karkov.png'),'png')
