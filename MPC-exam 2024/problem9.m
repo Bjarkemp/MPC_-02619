@@ -143,9 +143,6 @@ for i = 1:tf/dt
     udev(:,i) = u(:,i) - u0;   % Input deviation
     ddev(:,i) = d_k(:,i) - d0; % Disturbance deviation
 
-    % Kalman filter for state estimation (Det kan godt være at vi ikke
-    % behøver et filter der predicter, siden jeg tror der også sker noget
-    % prediction i g
     [x_hat, x_phat] = kalman_filter_aug_dynamic_pred(t(i), xdev(:,i), udev(:,i), At, rho, R, Q_aug, Ad_aug, Bd_aug, Gw_aug, C_aug, Ph);
     x_mpc = [x_hat(1:4,1) x_phat(1:4,:)]; % Combine estimated states
     if i == 1 % can have a zero'th iteration on MV's
@@ -221,4 +218,4 @@ for i = 1:2
 end
 
 %% save figure
-saveas(gcf,fullfile('C:\Users\bjark\OneDrive\Skrivebord\MPC_-02619\MPC-exam 2024\Plots','problem9.tiff'),'tiff')
+saveas(gcf,fullfile('C:\Users\bjark\OneDrive\Skrivebord\MPC_-02619\MPC-exam 2024\Plots','problem9.png'),'png')
