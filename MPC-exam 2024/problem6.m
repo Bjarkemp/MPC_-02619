@@ -27,7 +27,7 @@ At = p(5:8);                % [cm2] Cross sectional area
 % Simulation scenario
 % -----------------------------------------------------------
 t0 = 0.0;                   % [s] Initial time
-tf= 50*60;                  % [s] End time
+tf= 30*60;                  % [s] End time
 dt = 10;                    % [s] interval between each step
 N = tf/dt;                  % Number of steps 
 t = t0:dt:tf;               % [s] time-vector
@@ -63,8 +63,8 @@ sigma = [1^2 0; 0 1^2];                             % Covariance for disturbance
 % d = [130*ones(1,length(t));190*ones(1,length(t))];
 
 % Step changes in manipulated variables
-u(2,1:end) = u(2,1)*0.5;
-u(1,1:end) = u(1,1)*1.5;
+% u(2,10:end) = u(2,1)*0.5;
+% u(1,80:end) = u(1,1)*1.5;
 % d(2,250:end) = d(2,250:end)+100;
 
 
@@ -176,8 +176,6 @@ for i = 1:4
     plot(t/60, yhat2_dyn(i,:),'r', 'LineWidth', 1);
     hold on;
     plot(t/60, yhat2_sta(i,:),'g', 'LineWidth', 1);
-    hold on;
-    plot(t(1:300)/60, yhat2_dyn_pre(i,:),'k', 'LineWidth', 1);
     hold off;
     grid on;
     xlabel('t [min]', 'FontSize', 12);
